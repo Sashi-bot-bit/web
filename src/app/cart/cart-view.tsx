@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { AlertTriangle, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { formatPence } from "@/shared/money";
-import { cart, MAX_QTY_PER_LINE, useCart, type CartLine } from "@/lib/cart";
+import { cart, MAX_QTY_PER_LINE, useCart, useCartReady, type CartLine } from "@/lib/cart";
 import { buttonClass } from "@/components/ui/button";
 import { useQuote } from "@/components/shop/use-quote";
 import { OrderSummary } from "@/components/shop/order-summary";
@@ -36,7 +36,9 @@ export function QuantityStepper({ line }: { line: CartLine }) {
 export function CartView() {
   const { lines, count } = useCart();
   const { quote, error, pending } = useQuote(lines);
+  const ready = useCartReady();
 
+  if (!ready) return <div className="mt-6 h-48 animate-pulse rounded-[var(--radius-lg)] bg-surface" />;
   if (count === 0) {
     return (
       <div className="mt-10 flex flex-col items-center rounded-[var(--radius-lg)] border border-dashed border-border-strong px-6 py-14 text-center">

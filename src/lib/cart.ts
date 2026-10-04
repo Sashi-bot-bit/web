@@ -114,3 +114,9 @@ export function useCart() {
   const subtotalPence = snapshot.lines.reduce((n, l) => n + l.quantity * l.unitPricePence, 0);
   return { lines: snapshot.lines, count, subtotalPence };
 }
+
+const noopSubscribe = () => () => undefined;
+/** False during server render and hydration, true once the browser cart has been read. */
+export function useCartReady() {
+  return useSyncExternalStore(noopSubscribe, () => true, () => false);
+}

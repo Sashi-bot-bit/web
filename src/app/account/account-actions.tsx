@@ -12,7 +12,7 @@ export function AccountActions({ email, verified }: { email: string; verified: b
   const [pending, startTransition] = useTransition();
 
   return (
-    <div className="mt-6 space-y-4">
+    <div className="mt-10 space-y-4 border-t border-border pt-6">
       {verified ? null : (
         <div className="space-y-3 rounded-[var(--radius-md)] bg-warn-tint p-4">
           <p>Confirm your email so we can link guest orders to your account.</p>

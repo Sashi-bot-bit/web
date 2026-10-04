@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Minus, Plus, X } from "lucide-react";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { Heart, Minus, Plus, X } from "lucide-react";
+import { getFavouriteIdsAction, toggleFavouriteAction } from "@/server/actions/account";
 import type { MenuItemView } from "@/server/catalog";
 import { formatPence } from "@/shared/money";
 import { unitPrice } from "@/shared/fees";
@@ -18,6 +20,8 @@ export function MenuView({ restaurant, categories }: { restaurant: Restaurant; c
   const [active, setActive] = useState(categories[0]?.id);
   const [openItem, setOpenItem] = useState<MenuItemView | null>(null);
   const [announcement, setAnnouncement] = useState("");
+  const [favs, setFavs] = useState<{ signedIn: boolean; ids: Set<string> }>({ signedIn: false, ids: new Set() });
+  const [, startFav] = useTransition();
   const tabsRef = useRef<HTMLDivElement>(null);
   const { lines } = useCart();
   const inCart = new Map(lines.map((l) => [l.menuItemId, l.quantity]));
@@ -37,6 +41,28 @@ export function MenuView({ restaurant, categories }: { restaurant: Restaurant; c
     });
     return () => observer.disconnect();
   }, [categories]);
+
+  // Favourites need the session, so they load after the cached menu renders.
+  useEffect(() => {
+    startFav(async () => {
+      const r = await getFavouriteIdsAction();
+      setFavs({ signedIn: r.signedIn, ids: new Set(r.ids) });
+    });
+  }, []);
+
+  function toggleFavourite(item: MenuItemView) {
+    startFav(async () => {
+      const r = await toggleFavouriteAction(item.id);
+      if (!r.ok) return;
+      setFavs((prev) => {
+        const ids = new Set(prev.ids);
+        if (r.favourite) ids.add(item.id);
+        else ids.delete(item.id);
+        return { ...prev, ids };
+      });
+      setAnnouncement(r.favourite ? `${item.name} saved to favourites.` : `${item.name} removed from favourites.`);
+    });
+  }
 
   // Keep the active tab visible in the scrolling tab bar.
   useEffect(() => {
@@ -159,12 +185,29 @@ export function MenuView({ restaurant, categories }: { restaurant: Restaurant; c
         ))}
       </div>
 
-      <ItemSheet item={openItem} onClose={() => show(null)} onAdd={add} />
+      <ItemSheet
+        item={openItem}
+        onClose={() => show(null)}
+        onAdd={add}
+        favourite={{ signedIn: favs.signedIn, saved: openItem ? favs.ids.has(openItem.id) : false, toggle: toggleFavourite, slug: restaurant.slug }}
+      />
     </div>
   );
 }
 
-function ItemSheet({ item, onClose, onAdd }: { item: MenuItemView | null; onClose: () => void; onAdd: (item: MenuItemView, qty: number) => void }) {
+type FavouriteProps = { signedIn: boolean; saved: boolean; toggle: (item: MenuItemView) => void; slug: string };
+
+function ItemSheet({
+  item,
+  onClose,
+  onAdd,
+  favourite,
+}: {
+  item: MenuItemView | null;
+  onClose: () => void;
+  onAdd: (item: MenuItemView, qty: number) => void;
+  favourite: FavouriteProps;
+}) {
   const ref = useRef<HTMLDialogElement>(null);
   const [qty, setQty] = useState(1);
   const [shownId, setShownId] = useState<string | null>(null);
@@ -212,6 +255,23 @@ function ItemSheet({ item, onClose, onAdd }: { item: MenuItemView | null; onClos
                 <Spice level={item.spiceLevel} />
               </div>
               {item.description ? <p className="mt-3 text-body">{item.description}</p> : null}
+              <div className="mt-3">
+                {favourite.signedIn ? (
+                  <button
+                    type="button"
+                    onClick={() => favourite.toggle(item)}
+                    aria-pressed={favourite.saved}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border-strong px-4 text-small font-bold hover:border-ink"
+                  >
+                    <Heart aria-hidden className={cn("size-4", favourite.saved && "fill-danger text-danger-ink")} />
+                    {favourite.saved ? "Saved to favourites" : "Save to favourites"}
+                  </button>
+                ) : (
+                  <Link href={`/login?next=${encodeURIComponent(`/r/${favourite.slug}?item=${item.id}`)}`} className="inline-flex min-h-11 items-center gap-2 text-small font-bold underline-offset-4 hover:underline">
+                    <Heart aria-hidden className="size-4" /> Sign in to save favourites
+                  </Link>
+                )}
+              </div>
               {item.dietary.length ? (
                 <div className="mt-3">
                   <DietaryBadges tags={item.dietary} />

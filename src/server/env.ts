@@ -12,7 +12,7 @@ const schema = z
     REVALIDATE_SECRET: z.string().min(32, "REVALIDATE_SECRET must be at least 32 characters"),
     ORDER_LINK_SECRET: z.string().min(32, "ORDER_LINK_SECRET must be at least 32 characters"),
     RESEND_API_KEY: z.string().optional(),
-    EMAIL_FROM: z.string().min(3),
+    EMAIL_FROM: z.string().min(3).default("Campus Eats <onboarding@resend.dev>"),
   })
   ;
 

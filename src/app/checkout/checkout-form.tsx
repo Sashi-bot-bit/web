@@ -10,7 +10,7 @@ import { formatPence } from "@/shared/money";
 import type { Allergen } from "@/generated/prisma/enums";
 import type { SlotView } from "@/server/slot-view";
 import { placeOrderAction } from "@/server/actions/checkout";
-import { cart, useCart } from "@/lib/cart";
+import { cart, useCart, useCartReady } from "@/lib/cart";
 import { buttonClass } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
 import { Checkbox, FieldError, TextField } from "@/components/ui/field";
@@ -55,6 +55,7 @@ export function CheckoutForm({
 }) {
   const router = useRouter();
   const { lines, count } = useCart();
+  const ready = useCartReady();
   const { quote, setQuote, pending: quoting } = useQuote(lines);
   const restaurantIds = useMemo(() => [...new Set(lines.map((l) => l.restaurantId))], [lines]);
 
@@ -69,8 +70,8 @@ export function CheckoutForm({
   const placedRef = useRef(false);
 
   useEffect(() => {
-    if (count === 0 && !placedRef.current) router.replace("/cart");
-  }, [count, router]);
+    if (ready && count === 0 && !placedRef.current) router.replace("/cart");
+  }, [ready, count, router]);
 
   const slot = slots.find((s) => s.key === slotKey);
   const dropPoint = dropPoints.find((d) => d.id === dropPointId);

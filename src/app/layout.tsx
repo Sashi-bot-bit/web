@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { CartBar } from "@/components/shop/cart-bar";
 import { SiteFooter } from "@/components/shop/site-footer";
 import { SiteHeader } from "@/components/shop/site-header";
@@ -11,9 +12,8 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(process.env.NEXT_PUBLIC_SHOP_URL ?? "http://localhost:3000"),
     title: { default: `${brandName}: Hatfield food, delivered to your drop point`, template: `%s · ${brandName}` },
     description: "Order lunch or dinner from local Hatfield restaurants before the cutoff, then collect at a drop point near campus. Pay on collection.",
-    manifest: "/manifest.webmanifest",
     appleWebApp: { capable: true, title: brandName, statusBarStyle: "default" },
-    icons: { icon: "/icon.svg" },
+    icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/icon-192.png", sizes: "192x192" }], apple: "/apple-icon.png" },
   };
 }
 
@@ -40,7 +40,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {children}
         </main>
         <SiteFooter brand={brandName} supportEmail={supportEmail} />
-        <CartBar />
+        <Suspense>
+          <CartBar />
+        </Suspense>
       </body>
     </html>
   );
