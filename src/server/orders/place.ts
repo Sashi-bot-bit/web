@@ -104,7 +104,7 @@ export async function placeOrder(input: PlaceOrderInput, customer: { id: string 
           await tx.$executeRaw`
             INSERT INTO "SlotOccurrence" ("id", "slotId", "localDate", "orderOpensAt", "orderClosesAt", "deliveryStartsAt", "deliveryEndsAt", "capacity", "restaurantCaps", "createdAt")
             VALUES (${`occ_${slot.id}_${input.localDate}`}, ${slot.id}, ${dbDate}::date, ${times.orderOpensAt}, ${times.orderClosesAt}, ${times.deliveryStartsAt}, ${times.deliveryEndsAt}, ${slot.capacity}, ${JSON.stringify(caps)}::jsonb, now())
-            ON CONFLICT ("slotId", "localDate") DO NOTHING`;
+            ON CONFLICT DO NOTHING`;
           const [occ] = await tx.$queryRaw<
             { id: string; orderOpensAt: Date; orderClosesAt: Date; capacity: number; restaurantCaps: Record<string, number> }[]
           >`SELECT "id", "orderOpensAt", "orderClosesAt", "capacity", "restaurantCaps" FROM "SlotOccurrence"
