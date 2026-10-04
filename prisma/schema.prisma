@@ -1,0 +1,551 @@
+// Canonical schema for Campus Eats. Owned by the admin repo.
+// The web repo receives a copy via `pnpm sync:web` and never runs migrations.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────────────────── Enums ─────────────────────────
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+/// The 14 allergens regulated in UK food law.
+enum Allergen {
+  CELERY
+  GLUTEN
+  CRUSTACEANS
+  EGGS
+  FISH
+  LUPIN
+  MILK
+  MOLLUSCS
+  MUSTARD
+  TREE_NUTS
+  PEANUTS
+  SESAME
+  SOYA
+  SULPHITES
+}
+
+enum FeeType {
+  FLAT
+  PERCENT
+}
+
+enum OrderStatus {
+  CONFIRMED
+  PREPARING
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+  NOT_COLLECTED
+}
+
+enum PaymentMethod {
+  PAY_ON_DELIVERY
+}
+
+enum PaymentStatus {
+  UNPAID
+  COLLECTED
+  WAIVED
+}
+
+enum CollectMethod {
+  CASH
+  CARD
+}
+
+enum ActorType {
+  SYSTEM
+  CUSTOMER
+  ADMIN
+}
+
+enum TicketStatus {
+  OPEN
+  RESOLVED
+}
+
+enum ContactKind {
+  EMAIL
+  PHONE
+}
+
+enum BlockSource {
+  AUTO_NO_SHOW
+  ADMIN
+}
+
+// ───────────────────────── Auth (Better Auth) ─────────────────────────
+
+model User {
+  id               String    @id
+  name             String
+  email            String    @unique
+  emailVerified    Boolean   @default(false)
+  image            String?
+  role             Role      @default(CUSTOMER)
+  phone            String?
+  marketingOptIn   Boolean   @default(false)
+  marketingOptInAt DateTime?
+  anonymisedAt     DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  sessions   Session[]
+  accounts   Account[]
+  orders     Order[]
+  favourites Favourite[]
+  tickets    SupportTicket[]
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+/// Better Auth's database-backed rate limiter (auth endpoints).
+model RateLimit {
+  id          String @id
+  key         String @unique
+  count       Int
+  lastRequest BigInt
+}
+
+/// Fixed-window limiter for app actions (order placement, tickets, …).
+model RateLimitBucket {
+  key         String   @id
+  count       Int
+  windowStart DateTime
+}
+
+// ───────────────────────── Menu ─────────────────────────
+
+model Restaurant {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  name        String
+  description String
+  logoUrl     String?
+  coverUrl    String?
+  isActive    Boolean   @default(true)
+  sortOrder   Int
+  archivedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  categories Category[]
+  items      MenuItem[]
+  slotCaps   SlotRestaurantCap[]
+
+  @@index([sortOrder])
+}
+
+model Category {
+  id           String     @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
+  name         String
+  sortOrder    Int
+  isActive     Boolean    @default(true)
+  archivedAt   DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  items MenuItem[]
+
+  @@index([restaurantId, sortOrder])
+}
+
+model MenuItem {
+  id                   String     @id @default(cuid())
+  restaurantId         String
+  restaurant           Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
+  categoryId           String
+  category             Category   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  name                 String
+  description          String
+  pricePence           Int
+  discountedPricePence Int?
+  imageUrl             String?
+  isAvailable          Boolean    @default(false)
+  sortOrder            Int
+  allergens            Allergen[]
+  mayContain           Allergen[]
+  /// Must be set (by an admin) before the item can be made available.
+  allergensConfirmedAt DateTime?
+  allergensConfirmedBy String?
+  kcal                 Int?
+  spiceLevel           Int        @default(0)
+  portionNote          String?
+  archivedAt           DateTime?
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  dietaryTags MenuItemDietaryTag[]
+  favourites  Favourite[]
+  orderItems  OrderItem[]
+
+  @@index([categoryId, sortOrder])
+  @@index([restaurantId])
+}
+
+model DietaryTag {
+  id        String  @id @default(cuid())
+  slug      String  @unique
+  label     String
+  sortOrder Int
+  isActive  Boolean @default(true)
+
+  items MenuItemDietaryTag[]
+}
+
+model MenuItemDietaryTag {
+  menuItemId   String
+  menuItem     MenuItem   @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  dietaryTagId String
+  dietaryTag   DietaryTag @relation(fields: [dietaryTagId], references: [id], onDelete: Cascade)
+
+  @@id([menuItemId, dietaryTagId])
+}
+
+// ───────────────────────── Slots ─────────────────────────
+
+/// Recurring slot template. Times are minutes after local midnight, Europe/London.
+model Slot {
+  id                 String   @id @default(cuid())
+  name               String
+  orderOpensMin      Int
+  orderClosesMin     Int
+  deliveryStartsMin  Int
+  deliveryEndsMin    Int
+  /// ISO weekday numbers, 1 = Monday … 7 = Sunday.
+  daysOfWeek         Int[]
+  capacity           Int
+  closingSoonMinutes Int      @default(15)
+  isActive           Boolean  @default(true)
+  sortOrder          Int
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  restaurantCaps SlotRestaurantCap[]
+  occurrences    SlotOccurrence[]
+}
+
+model SlotRestaurantCap {
+  slotId       String
+  slot         Slot       @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  maxOrders    Int
+
+  @@id([slotId, restaurantId])
+}
+
+/// A slot on a specific London date. Created on the first order and locked
+/// (SELECT … FOR UPDATE) during placement so capacity can never be oversold.
+model SlotOccurrence {
+  id               String   @id @default(cuid())
+  slotId           String
+  slot             Slot     @relation(fields: [slotId], references: [id], onDelete: Restrict)
+  localDate        DateTime @db.Date
+  orderOpensAt     DateTime
+  orderClosesAt    DateTime
+  deliveryStartsAt DateTime
+  deliveryEndsAt   DateTime
+  capacity         Int
+  /// Snapshot: { [restaurantId]: maxOrders }
+  restaurantCaps   Json
+  createdAt        DateTime @default(now())
+
+  orders Order[]
+
+  @@unique([slotId, localDate])
+  @@index([localDate])
+}
+
+model ClosureDate {
+  id        String   @id @default(cuid())
+  localDate DateTime @unique @db.Date
+  reason    String?
+  createdAt DateTime @default(now())
+}
+
+model DropPoint {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  directions  String?
+  mapUrl      String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orders Order[]
+}
+
+model Fee {
+  id          String   @id @default(cuid())
+  label       String
+  type        FeeType
+  amountPence Int?
+  /// PERCENT fees: basis points, 1000 = 10.00 %
+  basisPoints Int?
+  isActive    Boolean  @default(true)
+  sortOrder   Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ───────────────────────── Orders ─────────────────────────
+
+model Order {
+  id                  String         @id @default(cuid())
+  number              String         @unique
+  userId              String?
+  user                User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  contactName         String
+  contactEmail        String
+  contactPhone        String
+  slotOccurrenceId    String
+  slotOccurrence      SlotOccurrence @relation(fields: [slotOccurrenceId], references: [id], onDelete: Restrict)
+  dropPointId         String
+  dropPoint           DropPoint      @relation(fields: [dropPointId], references: [id], onDelete: Restrict)
+  dropPointSnapshot   Json
+  status              OrderStatus    @default(CONFIRMED)
+  subtotalPence       Int
+  feesPence           Int
+  totalPence          Int
+  paymentMethod       PaymentMethod  @default(PAY_ON_DELIVERY)
+  paymentStatus       PaymentStatus  @default(UNPAID)
+  collectedPence      Int?
+  collectMethod       CollectMethod?
+  collectedAt         DateTime?
+  collectedBy         String?
+  waivedReason        String?
+  termsAcceptedAt     DateTime
+  marketingOptIn      Boolean        @default(false)
+  cancelReason        String?
+  cancelledBy         ActorType?
+  placedAt            DateTime       @default(now())
+  preparingAt         DateTime?
+  inTransitAt         DateTime?
+  deliveredAt         DateTime?
+  cancelledAt         DateTime?
+  notCollectedAt      DateTime?
+  updatedAt           DateTime       @updatedAt
+
+  items   OrderItem[]
+  fees    OrderFee[]
+  events  OrderStatusEvent[]
+  tickets SupportTicket[]
+
+  @@index([slotOccurrenceId, status])
+  @@index([contactEmail])
+  @@index([contactPhone])
+  @@index([placedAt])
+}
+
+model OrderItem {
+  id                     String     @id @default(cuid())
+  orderId                String
+  order                  Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId             String?
+  menuItem               MenuItem?  @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+  restaurantId           String
+  restaurantName         String
+  name                   String
+  unitPricePence         Int
+  originalUnitPricePence Int
+  quantity               Int
+  lineTotalPence         Int
+  allergens              Allergen[]
+  mayContain             Allergen[]
+  dietaryLabels          String[]
+  kcal                   Int?
+
+  @@index([orderId])
+  @@index([restaurantId])
+}
+
+model OrderFee {
+  id           String  @id @default(cuid())
+  orderId      String
+  order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  feeId        String?
+  label        String
+  type         FeeType
+  amountPence  Int?
+  basisPoints  Int?
+  chargedPence Int
+
+  @@index([orderId])
+}
+
+model OrderStatusEvent {
+  id        String       @id @default(cuid())
+  orderId   String
+  order     Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  from      OrderStatus?
+  to        OrderStatus
+  actorType ActorType
+  actorId   String?
+  note      String?
+  at        DateTime     @default(now())
+
+  @@index([orderId, at])
+}
+
+model ContactBlock {
+  id        String      @id @default(cuid())
+  kind      ContactKind
+  /// Normalised: lower-cased email or E.164 phone.
+  value     String
+  reason    String
+  source    BlockSource
+  createdBy String?
+  createdAt DateTime    @default(now())
+  clearedAt DateTime?
+  clearedBy String?
+
+  @@index([kind, value])
+}
+
+// ───────────────────────── Customer extras ─────────────────────────
+
+model Favourite {
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@id([userId, menuItemId])
+}
+
+model SupportTicket {
+  id             String       @id @default(cuid())
+  number         String       @unique
+  userId         String?
+  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  orderId        String?
+  order          Order?       @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  contactName    String
+  contactEmail   String
+  subject        String
+  status         TicketStatus @default(OPEN)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  resolvedAt     DateTime?
+
+  messages TicketMessage[]
+
+  @@index([status, updatedAt])
+}
+
+model TicketMessage {
+  id         String        @id @default(cuid())
+  ticketId   String
+  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorType ActorType
+  authorId   String?
+  body       String
+  createdAt  DateTime      @default(now())
+
+  @@index([ticketId, createdAt])
+}
+
+// ───────────────────────── Ops ─────────────────────────
+
+model EmailLog {
+  id         String   @id @default(cuid())
+  dedupeKey  String   @unique
+  type       String
+  toEmail    String
+  providerId String?
+  status     String
+  createdAt  DateTime @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  action     String
+  entityType String
+  entityId   String
+  before     Json?
+  after      Json?
+  at         DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([at])
+}
+
+model Settings {
+  id                               Int      @id @default(1)
+  storeOpen                        Boolean  @default(true)
+  brandName                        String
+  supportEmail                     String
+  paymentInstructions              String
+  /// Trader identity for the legal pages (Consumer Contracts Regulations).
+  legalName                        String?
+  legalAddress                     String?
+  companyNumber                    String?
+  maxItemsPerOrder                 Int      @default(30)
+  maxQtyPerLine                    Int      @default(10)
+  maxActiveOrdersPerContactPerSlot Int      @default(2)
+  noShowBlockThreshold             Int      @default(2)
+  noShowWindowDays                 Int      @default(90)
+  emailOnPreparing                 Boolean  @default(false)
+  emailOnDelivered                 Boolean  @default(false)
+  updatedAt                        DateTime @updatedAt
+}
