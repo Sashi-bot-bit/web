@@ -225,4 +225,7 @@ export const settingsInput = z.object({
   noShowWindowDays: requiredInt("No-show window", 7, 365),
   emailOnPreparing: checkbox,
   emailOnDelivered: checkbox,
+  legalName: optionalText(120).transform((v) => v ?? null),
+  legalAddress: optionalText(300).transform((v) => v ?? null),
+  companyNumber: optionalText(20).transform((v) => v ?? null),
 });
