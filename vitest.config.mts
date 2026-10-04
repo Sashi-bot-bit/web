@@ -11,6 +11,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/**/*.test.ts"],
+    exclude: ["e2e/**", "node_modules/**"],
     // Integration tests share one Postgres database, so run files serially.
     fileParallelism: false,
     setupFiles: ["tests/setup.ts"],
