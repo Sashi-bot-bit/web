@@ -4,12 +4,13 @@ import { CartBar } from "@/components/shop/cart-bar";
 import { SiteFooter } from "@/components/shop/site-footer";
 import { SiteHeader } from "@/components/shop/site-header";
 import { getSettings } from "@/server/catalog";
+import { env } from "@/server/env";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { brandName } = await getSettings();
   return {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SHOP_URL ?? "http://localhost:3000"),
+    metadataBase: new URL(env.NEXT_PUBLIC_SHOP_URL),
     title: { default: `${brandName}: Hatfield food, delivered to your drop point`, template: `%s · ${brandName}` },
     description: "Order lunch or dinner from local Hatfield restaurants before the cutoff, then collect at a drop point near campus. Pay on collection.",
     appleWebApp: { capable: true, title: brandName, statusBarStyle: "default" },

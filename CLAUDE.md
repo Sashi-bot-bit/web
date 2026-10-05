@@ -15,7 +15,8 @@ Next.js 16.3.8 with **Cache Components** (`cacheComponents: true`) · React 19.2
 
 ## Rules
 - **Never edit `src/shared/` or `prisma/schema.prisma` here.** Change them in admin, run `pnpm sync:web` there, then `pnpm prisma generate` here. `tests/unit/shared-checksum.test.ts` fails on local edits.
-- Never run migrations from this repo.
+- Migrations and seed are **copied from admin** (`prisma/migrations`, `prisma/seed.ts`); never write them here. The Vercel build (`vercel-build`) runs `prisma migrate deploy` + `prisma db seed` (advisory-locked, idempotent) so the site can deploy on its own. Local `pnpm build` does not touch the database schema.
+- On Vercel, `NEXT_PUBLIC_SHOP_URL`/`BETTER_AUTH_URL` default to the deployment URL (`src/server/env.ts`); `REVALIDATE_SECRET` is optional (endpoint refuses all calls without it).
 - Cached reads live in `src/server/catalog.ts` (`"use cache"` + `cacheLife` + `cacheTag`). Tags: `menu`, `slots`, `settings`, `drop-points`, `fees`, `restaurant:<id>`. Anything reading cookies/headers goes inside `<Suspense>`.
 - Auth flows call Better Auth from the browser (`src/lib/auth-client.ts`) so its rate limits and cookies apply; `useClientForm` handles Zod validation and focus.
 - Emails: `sendEmail()` in `src/server/email/send.ts` (optional `dedupeKey` → `EmailLog`). Without `RESEND_API_KEY`, outside production only, the email is printed to the server console.

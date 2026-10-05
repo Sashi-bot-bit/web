@@ -18,6 +18,8 @@ export const auth = betterAuth({
   appName: brand,
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
+  // Also accept the deployment's own URL (Vercel preview links) for CSRF origin checks.
+  trustedOrigins: [env.NEXT_PUBLIC_SHOP_URL, ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : [])],
   database: prismaAdapter(db, { provider: "postgresql" }),
   emailAndPassword: {
     enabled: true,

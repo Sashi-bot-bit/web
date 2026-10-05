@@ -8,6 +8,7 @@ const TAG = /^(menu|slots|settings|drop-points|fees|restaurant:[a-z0-9]{1,40})$/
 const body = z.object({ tags: z.array(z.string().regex(TAG)).min(1).max(20) });
 
 function authorised(header: string | null): boolean {
+  if (!env.REVALIDATE_SECRET) return false;
   const expected = Buffer.from(`Bearer ${env.REVALIDATE_SECRET}`);
   const given = Buffer.from(header ?? "");
   return given.length === expected.length && timingSafeEqual(given, expected);

@@ -1,29 +1,35 @@
 # Deploy: customer site (Vercel)
 
-Deploy the **admin** repo first (it creates the database tables). Then:
+The Vercel build (`vercel-build` in package.json) applies database migrations and loads the starter data before building,
+so this site can go live on its own. Both steps are safe to repeat on every deploy.
 
-1. Vercel → Add New → Project → import this GitHub repo. Framework: Next.js (auto-detected).
-2. Environment variables (Production and Preview):
+## 1. Database
+Vercel project → **Storage** → Create Database → **Neon** → connect it to this project.
+This adds `DATABASE_URL` and `DATABASE_URL_UNPOOLED` automatically.
 
-| Variable | Value |
+## 2. Two secrets (Settings → Environment Variables, Production and Preview)
+Generate each value in Terminal and paste it:
+
+| Variable | Generate with |
 |---|---|
-| `DATABASE_URL` | Neon **pooled** connection string (same database as admin) |
-| `BETTER_AUTH_SECRET` | `openssl rand -base64 32` (different from admin) |
-| `BETTER_AUTH_URL`, `NEXT_PUBLIC_SHOP_URL` | Your Vercel URL, e.g. `https://campus-eats.vercel.app` |
-| `NEXT_PUBLIC_BRAND_NAME` | `Campus Eats` (or your brand) |
-| `REVALIDATE_SECRET` | Same value as admin |
-| `ORDER_LINK_SECRET` | Same value as admin |
-| `RESEND_API_KEY`, `EMAIL_FROM` | Needed for confirmation, verification and password emails. Without a key the site works but no emails are sent |
+| `BETTER_AUTH_SECRET` | `openssl rand -base64 32` |
+| `ORDER_LINK_SECRET` | `openssl rand -hex 32` (use the **same value** later in the admin site) |
 
-3. Deploy. After changing the domain, update `BETTER_AUTH_URL`/`NEXT_PUBLIC_SHOP_URL` here and `NEXT_PUBLIC_SHOP_URL` in Render.
+The site address is detected from Vercel automatically. Set `NEXT_PUBLIC_SHOP_URL` and `BETTER_AUTH_URL` only after adding a custom domain (e.g. `https://order.example.co.uk`).
+
+## 3. Optional now, needed for launch
+
+| Variable | Why |
+|---|---|
+| `RESEND_API_KEY`, `EMAIL_FROM` | Order confirmations, email verification, password reset. Without them, no emails are sent. |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` (16+ characters) | Creates or updates the admin login during the build, ready for the admin site. |
+| `REVALIDATE_SECRET` (`openssl rand -hex 32`) | Lets the admin site refresh menus here instantly. Same value in both sites. |
+
+## 4. Deploy
+Deployments → **Redeploy** (or push to `main`).
+
+## Region
+Keep the Vercel Functions region next to the Neon database region (Neon dashboard → project → region).
+If Neon is in **London (aws-eu-west-2)**, set Settings → Functions → Region to **London (lhr1)**.
 
 Note: Vercel’s free Hobby plan is for non-commercial use. Move to Pro before trading publicly.
-
-## Quickest setup (no Render yet)
-
-1. Vercel project → **Storage** → Create Database → **Neon** → connect to this project (adds `DATABASE_URL`).
-2. From the `admin` repo on your laptop, create the tables and starter data once (use the Neon connection strings from Vercel → Storage):
-   ```bash
-   DATABASE_URL="<pooled>" DATABASE_URL_UNPOOLED="<direct>" ADMIN_EMAIL="you@example.com" ADMIN_PASSWORD="<16+ chars>" pnpm db:deploy && pnpm db:seed
-   ```
-3. Add the other variables above, then **Redeploy the latest commit**.

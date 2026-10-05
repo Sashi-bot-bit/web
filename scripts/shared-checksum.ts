@@ -9,7 +9,12 @@ export function sharedFiles(root: string): string[] {
       const full = join(dir, name);
       return statSync(full).isDirectory() ? walk(full) : [full];
     });
-  return [join(root, "prisma/schema.prisma"), ...walk(join(root, "src/shared")).filter((f) => !f.endsWith("SHARED_CHECKSUM"))].sort();
+  return [
+    join(root, "prisma/schema.prisma"),
+    join(root, "prisma/seed.ts"),
+    ...walk(join(root, "prisma/migrations")),
+    ...walk(join(root, "src/shared")).filter((f) => !f.endsWith("SHARED_CHECKSUM")),
+  ].sort();
 }
 
 export function sharedChecksum(root: string): string {
