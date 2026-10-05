@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
+import { AnnouncementBar } from "@/components/shop/announcement-bar";
 import { CartBar } from "@/components/shop/cart-bar";
 import { SiteFooter } from "@/components/shop/site-footer";
 import { SiteHeader } from "@/components/shop/site-header";
@@ -36,6 +37,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         >
           Skip to content
         </a>
+        <AnnouncementBar />
         <SiteHeader brand={brandName} />
         <main id="main" className="flex-1">
           {children}

@@ -183,3 +183,43 @@ export async function getSlotConfig(today: string) {
 export function todayInLondon() {
   return londonDate(new Date());
 }
+
+const HOME_DEFAULTS = {
+  announcement: null as string | null,
+  announcementLink: null as string | null,
+  heroEyebrow: "Hatfield restaurants, delivered to campus",
+  heroTitle: "Hungry? Your favourite local food,",
+  heroHighlight: "brought to campus.",
+  heroSubtitle:
+    "Fried chicken, curries, pizza and more from local Hatfield restaurants. Order before the cutoff, collect at your drop point and pay when you pick up.",
+  heroCtaLabel: "Order now",
+  heroImage1: null as string | null,
+  heroImage2: null as string | null,
+  heroImage3: null as string | null,
+  cravingsTitle: "What are you craving?",
+  showCravings: true,
+  postersTitle: "Offers and news",
+  restaurantsTitle: "Restaurants near campus",
+  showHowItWorks: true,
+};
+
+/** Homepage copy edited in admin (Homepage page). */
+export async function getHomeContent() {
+  "use cache";
+  cacheLife(MENU_LIFE);
+  cacheTag("home");
+  const c = await db.homeContent.findUnique({ where: { id: 1 } });
+  return c ? { ...HOME_DEFAULTS, ...c } : HOME_DEFAULTS;
+}
+
+/** Posters that are switched on; date windows are applied at request time. */
+export async function getActiveBanners() {
+  "use cache";
+  cacheLife(MENU_LIFE);
+  cacheTag("home");
+  return db.banner.findMany({
+    where: { isActive: true },
+    orderBy: { sortOrder: "asc" },
+    select: { id: true, title: true, subtitle: true, ctaLabel: true, linkUrl: true, imageUrl: true, theme: true, isActive: true, startsAt: true, endsAt: true },
+  });
+}

@@ -549,3 +549,52 @@ model Settings {
   emailOnDelivered                 Boolean  @default(false)
   updatedAt                        DateTime @updatedAt
 }
+
+// ───────────────────────── Homepage content (edited in admin) ─────────────────────────
+
+/// Singleton: customer homepage copy and imagery.
+model HomeContent {
+  id               Int      @id @default(1)
+  announcement     String?
+  announcementLink String?
+  heroEyebrow      String
+  heroTitle        String
+  heroHighlight    String
+  heroSubtitle     String
+  heroCtaLabel     String
+  heroImage1       String?
+  heroImage2       String?
+  heroImage3       String?
+  cravingsTitle    String
+  showCravings     Boolean  @default(true)
+  postersTitle     String
+  restaurantsTitle String
+  showHowItWorks   Boolean  @default(true)
+  updatedAt        DateTime @updatedAt
+}
+
+enum BannerTheme {
+  VIOLET
+  DARK
+  LIGHT
+}
+
+/// Promotional posters shown on the homepage.
+model Banner {
+  id        String      @id @default(cuid())
+  title     String
+  subtitle  String?
+  ctaLabel  String?
+  /// Internal path (e.g. /r/pizza-gogo-hatfield) or https URL.
+  linkUrl   String?
+  imageUrl  String?
+  theme     BannerTheme @default(VIOLET)
+  isActive  Boolean     @default(true)
+  sortOrder Int
+  startsAt  DateTime?
+  endsAt    DateTime?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([isActive, sortOrder])
+}

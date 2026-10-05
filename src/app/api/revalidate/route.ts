@@ -4,7 +4,7 @@ import { z } from "zod";
 import { env } from "@/server/env";
 import { log } from "@/server/log";
 
-const TAG = /^(menu|slots|settings|drop-points|fees|restaurant:[a-z0-9]{1,40})$/;
+const TAG = /^(menu|slots|settings|drop-points|fees|home|restaurant:[a-z0-9]{1,40})$/;
 const body = z.object({ tags: z.array(z.string().regex(TAG)).min(1).max(20) });
 
 function authorised(header: string | null): boolean {

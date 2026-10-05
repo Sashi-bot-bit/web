@@ -214,3 +214,61 @@ export const settingsInput = z.object({
   legalAddress: optionalText(300).transform((v) => v ?? null),
   companyNumber: optionalText(20).transform((v) => v ?? null),
 });
+
+// ───────── Homepage content ─────────
+
+/** Internal path ("/r/pizza") or full https URL. */
+export const optionalLink = z.preprocess(
+  (v) => (typeof v === "string" && v.trim() === "" ? undefined : typeof v === "string" ? v.trim() : v),
+  z
+    .string()
+    .max(500)
+    .refine((v) => (v.startsWith("/") && !v.startsWith("//")) || /^https:\/\/[^\s]+$/.test(v), "Use a page on this site (starting with /) or a full https:// link")
+    .optional(),
+);
+
+export const homeContentInput = z.object({
+  announcement: optionalText(140),
+  announcementLink: optionalLink,
+  heroEyebrow: requiredText("Small label", 60),
+  heroTitle: requiredText("Headline", 80),
+  heroHighlight: optionalText(60).transform((v) => v ?? ""),
+  heroSubtitle: requiredText("Intro text", 260),
+  heroCtaLabel: requiredText("Button label", 30),
+  heroImage1: optionalImageUrl,
+  heroImage2: optionalImageUrl,
+  heroImage3: optionalImageUrl,
+  cravingsTitle: requiredText("Cuisine section title", 60),
+  showCravings: checkbox,
+  postersTitle: requiredText("Posters section title", 60),
+  restaurantsTitle: requiredText("Restaurants section title", 60),
+  showHowItWorks: checkbox,
+});
+export type HomeContentInput = z.output<typeof homeContentInput>;
+
+const optionalDate = z.preprocess(
+  (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+  z.string().refine(isLocalDate, "Enter a valid date").optional(),
+);
+
+export const bannerInput = z
+  .object({
+    title: requiredText("Title", 80),
+    subtitle: optionalText(200),
+    ctaLabel: optionalText(30),
+    linkUrl: optionalLink,
+    imageUrl: optionalImageUrl,
+    theme: z.enum(["VIOLET", "DARK", "LIGHT"], { error: "Choose a style" }),
+    isActive: checkbox,
+    startsOn: optionalDate,
+    endsOn: optionalDate,
+  })
+  .superRefine((v, ctx) => {
+    if (v.startsOn && v.endsOn && v.endsOn < v.startsOn) {
+      ctx.addIssue({ code: "custom", path: ["endsOn"], message: "The end date must be on or after the start date" });
+    }
+    if (v.ctaLabel && !v.linkUrl) {
+      ctx.addIssue({ code: "custom", path: ["linkUrl"], message: "Add a link for the button, or remove the button label" });
+    }
+  });
+export type BannerInput = z.output<typeof bannerInput>;
