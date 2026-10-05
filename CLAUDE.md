@@ -32,6 +32,7 @@ Next.js 16.3.8 with **Cache Components** (`cacheComponents: true`) · React 19.2
 - D8 Order/ticket pages: owner session or HMAC link (`?t=`), 90 days. `findViewableOrder()` is the only access check.
 - D9 Account deletion anonymises user, orders and tickets; refused while an order is in progress.
 - D11 Homepage copy, announcement bar and posters come from `getHomeContent()` / `getActiveBanners()` (tag `home`, edited in admin). Defaults apply if the row is missing. Placeholder food photos: `src/lib/food-images.ts` (Unsplash licence).
+- D12 UI follows the client's delivery-app mockup (2026-10-05): Poppins (`next/font`), violet palette kept, pill buttons, white cards with `--shadow-card`, tints `orange/green/pink-tint` for icon circles. Home = hero + feature icons + boxed HH:MM:SS countdown card + restaurant rows; menu rows use "+ Add" pills that become steppers; violet "View basket" bar; checkout steps as cards; `?placed=1` shows the "Order confirmed!" screen above tracking.
 - D10 Allergens: `AllergenInfo` / `allergenSummary` show listed allergens, "none of the 14" (only with `noAllergens`), or "not provided by the restaurant". Orders snapshot `noAllergens`. No confirmation gate.
 
 ## Design passes

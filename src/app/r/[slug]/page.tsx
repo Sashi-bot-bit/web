@@ -5,7 +5,7 @@ import { coverFor } from "@/lib/food-images";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { ChevronLeft, Info } from "lucide-react";
+import { ArrowLeft, Info, ListChecks, MapPin, Wallet } from "lucide-react";
 import { featuredOccurrence, isOrderableStatus, restaurantOpenIn } from "@/shared/availability";
 import { londonDate } from "@/shared/time";
 import { getOccurrences } from "@/server/availability";
@@ -49,7 +49,7 @@ async function SlotNotice({ restaurantId, name }: { restaurantId: string; name: 
     text = `${name} isn’t taking orders in the next few days.`;
   }
   return (
-    <p className={`flex items-start gap-2 rounded-[var(--radius-md)] px-3 py-2.5 text-small font-bold ${here ? "bg-surface" : "bg-warn-tint"}`}>
+    <p className={`flex items-start gap-2 rounded-[var(--radius-md)] px-3 py-2.5 text-small font-semibold ${here ? "bg-green-tint" : "bg-warn-tint"}`}>
       <Info aria-hidden className="mt-0.5 size-4 shrink-0" />
       {text}
     </p>
@@ -64,17 +64,46 @@ async function RestaurantContent({ params }: { params: Promise<Params> }) {
   const cover = coverFor({ coverUrl: menu.coverUrl, name: menu.name, description: menu.description, categories: menu.categories.map((c) => c.name) });
   return (
     <>
-      <div className="relative h-44 overflow-hidden bg-surface sm:h-60">
+      <div className="relative h-56 overflow-hidden bg-surface sm:h-72">
         <Image src={cover.src} alt="" fill priority sizes="100vw" className="object-cover" />
+        <span aria-hidden className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/30 to-transparent" />
+        <Link
+          href="/#restaurants"
+          className="absolute top-3 left-3 flex size-11 items-center justify-center rounded-full bg-bg text-ink shadow-[var(--shadow-card)] hover:bg-surface"
+        >
+          <ArrowLeft aria-hidden className="size-5" />
+          <span className="sr-only">All restaurants</span>
+        </Link>
       </div>
       <div className="mx-auto max-w-5xl px-4">
-        <div className="relative -mt-10 rounded-[var(--radius-lg)] bg-bg p-5 shadow-[var(--shadow-float)] sm:-mt-14 sm:p-6">
-          <Link href="/#restaurants" className="-ml-1 inline-flex min-h-11 items-center gap-1 text-small font-bold text-ink-2 hover:text-ink">
-            <ChevronLeft aria-hidden className="size-4" /> All restaurants
-          </Link>
-          <h1 className="text-[2rem] leading-tight font-bold tracking-[-0.02em] sm:text-[2.5rem]">{menu.name}</h1>
-          <p className="mt-1 max-w-prose text-muted">{menu.description}</p>
-          <div className="mt-4">
+        <div className="relative -mt-12 rounded-[var(--radius-lg)] bg-bg p-4 shadow-[var(--shadow-float)] sm:-mt-16 sm:p-6">
+          <div className="flex items-start gap-3 sm:gap-4">
+            <span className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent-tint text-h3 font-bold text-accent-ink ring-4 ring-bg sm:size-16">
+              {menu.logoUrl ? <Image src={menu.logoUrl} alt="" fill sizes="64px" className="object-cover" /> : menu.name.charAt(0)}
+            </span>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-[1.5rem] leading-tight font-bold tracking-[-0.01em] sm:text-[2rem]">{menu.name}</h1>
+              <p className="mt-0.5 text-small text-muted">{menu.categories.slice(0, 3).map((c) => c.name).join(" • ")}</p>
+            </div>
+          </div>
+          {menu.description ? <p className="mt-3 max-w-prose text-small text-ink-2">{menu.description}</p> : null}
+          <ul className="mt-4 grid grid-cols-3 divide-x divide-border rounded-[var(--radius-md)] bg-surface py-2.5 text-center text-[0.8125rem] leading-tight">
+            <li className="flex flex-col items-center gap-1 px-1">
+              <ListChecks aria-hidden className="size-4 text-accent-ink" />
+              <span>
+                <span className="font-semibold">{itemCount}</span> dishes
+              </span>
+            </li>
+            <li className="flex flex-col items-center gap-1 px-1">
+              <Wallet aria-hidden className="size-4 text-orange-ink" />
+              <span className="font-semibold">Pay on collection</span>
+            </li>
+            <li className="flex flex-col items-center gap-1 px-1">
+              <MapPin aria-hidden className="size-4 text-success-ink" />
+              <span className="font-semibold">Campus drop points</span>
+            </li>
+          </ul>
+          <div className="mt-3">
             <Suspense fallback={<div className="h-10 animate-pulse rounded-[var(--radius-md)] bg-surface" />}>
               <SlotNotice restaurantId={menu.id} name={menu.name} />
             </Suspense>

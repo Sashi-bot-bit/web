@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { AlertTriangle, Check, Clock, MapPin } from "lucide-react";
+import { AlertTriangle, Check, Clock, MapPin, Timer, Wallet } from "lucide-react";
 import { restaurantOpenIn } from "@/shared/availability";
 import { allergenLabel, allergenSummary } from "@/shared/allergens";
 import { formatPence } from "@/shared/money";
@@ -23,11 +23,11 @@ type Errors = Record<string, string[] | undefined>;
 
 function Step({ n, title, children, done }: { n: number; title: string; children: React.ReactNode; done?: boolean }) {
   return (
-    <section aria-labelledby={`step-${n}`} className="border-t border-border pt-6">
+    <section aria-labelledby={`step-${n}`} className="rounded-[var(--radius-lg)] bg-bg p-4 shadow-[var(--shadow-card)] sm:p-5">
       <h2 id={`step-${n}`} className="flex items-center gap-3 text-h3 font-bold">
         <span
           aria-hidden
-          className={cn("flex size-7 items-center justify-center rounded-full text-small tabular", done ? "bg-ink text-on-dark" : "bg-surface-2")}
+          className={cn("flex size-8 items-center justify-center rounded-full text-small tabular", done ? "bg-accent text-on-accent" : "bg-accent-tint text-accent-ink")}
         >
           {done ? <Check className="size-4" /> : n}
         </span>
@@ -124,16 +124,17 @@ export function CheckoutForm({
 
   if (!storeOpen || slots.length === 0) {
     return (
-      <div className="mt-8 rounded-[var(--radius-lg)] bg-surface p-6">
-        <p className="flex items-center gap-2 text-h3 font-bold">
-          <Clock aria-hidden className="size-5" /> Ordering is closed right now
-        </p>
-        <p className="mt-2 text-muted">
+      <div className="mt-6 flex flex-col items-center rounded-[var(--radius-lg)] bg-warn-tint px-6 py-10 text-center">
+        <span className="flex size-16 items-center justify-center rounded-full bg-warn text-ink">
+          <Clock aria-hidden className="size-8" strokeWidth={2} />
+        </span>
+        <p className="mt-4 text-h3 font-bold">Ordering is closed right now</p>
+        <p className="mt-2 max-w-sm text-ink-2">
           {nextOpening
             ? `${nextOpening.slotName} ordering opens ${nextOpening.day.toLowerCase()} at ${nextOpening.orderOpens}. Your basket is saved on this device.`
             : "There are no delivery slots open this week. Your basket is saved on this device."}
         </p>
-        <Link href="/" className={buttonClass("secondary", "md", "mt-5")}>
+        <Link href="/" className={buttonClass("primary", "md", "mt-6 min-h-12 px-7")}>
           Back to home
         </Link>
       </div>
@@ -141,8 +142,8 @@ export function CheckoutForm({
   }
 
   return (
-    <form ref={formRef} onSubmit={submit} noValidate className="mt-6 grid gap-10 lg:grid-cols-[1fr_360px] lg:items-start">
-      <div className="space-y-8">
+    <form ref={formRef} onSubmit={submit} noValidate className="mt-5 grid gap-6 lg:grid-cols-[1fr_360px] lg:items-start">
+      <div className="space-y-4">
         <Step n={1} title="Delivery slot" done={Boolean(slot)}>
           <fieldset aria-describedby={errors.slot ? "slot-error" : undefined}>
             <legend className="sr-only">Choose a delivery slot</legend>
@@ -154,8 +155,8 @@ export function CheckoutForm({
                   <label
                     key={s.key}
                     className={cn(
-                      "relative flex cursor-pointer flex-col rounded-[var(--radius-md)] border-2 p-4",
-                      slotKey === s.key ? "border-accent bg-accent-tint" : "border-border hover:border-border-strong",
+                      "relative flex cursor-pointer flex-col rounded-[var(--radius-md)] border-2 p-4 transition-colors",
+                      slotKey === s.key ? "border-accent bg-accent-tint" : "border-border hover:border-accent",
                       !usable && "cursor-not-allowed opacity-60",
                     )}
                   >
@@ -168,10 +169,10 @@ export function CheckoutForm({
                       onChange={() => setSlotKey(s.key)}
                       className="absolute top-4 right-4 size-5 accent-[var(--color-accent)]"
                     />
-                    <span className="pr-8 font-bold">
+                    <span className="pr-8 font-semibold">
                       {s.slotName} · {s.day}
                     </span>
-                    <span className="mt-1 text-small tabular">Delivered {s.deliveryWindow}</span>
+                    <span className="mt-1 text-[1.0625rem] font-semibold tabular text-accent-ink">{s.deliveryWindow}</span>
                     <span className="mt-0.5 text-small text-muted tabular">Order by {s.orderCloses}</span>
                     {!usable ? (
                       <span className="mt-2 text-small font-bold text-danger-ink">Not available for {[...new Set(blockedNames)].join(", ")}</span>
@@ -183,10 +184,18 @@ export function CheckoutForm({
               })}
             </div>
             <FieldError id="slot-error" errors={errors.slot} />
+            {slot ? (
+              <p className="mt-3 flex items-center gap-2 rounded-[var(--radius-md)] bg-warn-tint px-3 py-2.5 text-small">
+                <Timer aria-hidden className="size-4 shrink-0" />
+                <span>
+                  Orders for this slot close at <span className="font-semibold tabular">{slot.orderCloses}</span>.
+                </span>
+              </p>
+            ) : null}
           </fieldset>
         </Step>
 
-        <Step n={2} title="Drop point" done={Boolean(dropPoint)}>
+        <Step n={2} title="Collection point" done={Boolean(dropPoint)}>
           <fieldset aria-describedby={errors.dropPointId ? "dropPointId-error" : undefined}>
             <legend className="sr-only">Choose where to collect your order</legend>
             <div className="grid gap-3">
@@ -194,13 +203,15 @@ export function CheckoutForm({
                 <label
                   key={d.id}
                   className={cn(
-                    "relative flex cursor-pointer gap-3 rounded-[var(--radius-md)] border-2 p-4",
-                    dropPointId === d.id ? "border-accent bg-accent-tint" : "border-border hover:border-border-strong",
+                    "relative flex cursor-pointer gap-3 rounded-[var(--radius-md)] border-2 p-4 transition-colors",
+                    dropPointId === d.id ? "border-accent bg-accent-tint" : "border-border hover:border-accent",
                   )}
                 >
-                  <MapPin aria-hidden className="mt-0.5 size-5 shrink-0" strokeWidth={1.75} />
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-green-tint text-success-ink">
+                    <MapPin aria-hidden className="size-4" strokeWidth={2.25} />
+                  </span>
                   <span className="min-w-0 flex-1 pr-8">
-                    <span className="block font-bold">{d.name}</span>
+                    <span className="block font-semibold">{d.name}</span>
                     <span className="block text-small text-muted">{d.description}</span>
                     {d.directions && dropPointId === d.id ? <span className="mt-1 block text-small">{d.directions}</span> : null}
                   </span>
@@ -225,9 +236,9 @@ export function CheckoutForm({
               Signed in as <span className="font-bold text-ink">{customer.email}</span>
             </p>
           ) : (
-            <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[var(--radius-md)] bg-surface p-4 text-small">
+            <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[var(--radius-md)] bg-accent-tint px-4 py-3 text-small">
               <span>Have an account?</span>
-              <Link href="/login?next=/checkout" className="font-bold underline underline-offset-4">
+              <Link href="/login?next=/checkout" className="font-semibold text-accent-ink underline underline-offset-4">
                 Sign in
               </Link>
               <span className="text-muted">or continue as a guest below.</span>
@@ -262,17 +273,17 @@ export function CheckoutForm({
           </div>
         </Step>
 
-        <Step n={4} title="Review">
+        <Step n={4} title="Review & allergens">
           {quote ? (
-            <ul className="divide-y divide-border rounded-[var(--radius-md)] border border-border">
+            <ul className="divide-y divide-border rounded-[var(--radius-md)] bg-surface">
               {quote.lines.map((l) => (
                 <li key={l.menuItemId} className="px-4 py-3">
                   <div className="flex justify-between gap-3">
                     <p>
-                      <span className="font-bold tabular">{l.quantity} ×</span> {l.name}
+                      <span className="font-semibold tabular">{l.quantity} ×</span> {l.name}
                       <span className="text-small text-muted"> · {l.restaurantName}</span>
                     </p>
-                    <p className="font-bold tabular">{formatPence(l.lineTotalPence)}</p>
+                    <p className="font-semibold tabular">{formatPence(l.lineTotalPence)}</p>
                   </div>
                   <p className="mt-0.5 text-small text-muted">
                     Contains: {allergenSummary(l.allergens, l.noAllergens)}
@@ -306,12 +317,16 @@ export function CheckoutForm({
       </div>
 
       <aside aria-label="Order total" className="lg:sticky lg:top-20">
-        <div className="rounded-[var(--radius-lg)] border border-border p-5">
+        <div className="rounded-[var(--radius-lg)] bg-bg p-5 shadow-[var(--shadow-card)]">
+          <h2 className="mb-3 text-h3 font-bold">Order summary</h2>
           {quote ? <OrderSummary subtotalPence={quote.subtotalPence} fees={quote.fees} totalPence={quote.totalPence} totalLabel="Pay on delivery" /> : <div className="h-28 animate-pulse rounded bg-surface" />}
-          <p className="mt-3 rounded-[var(--radius-sm)] bg-surface px-3 py-2 text-small">{paymentInstructions}</p>
+          <p className="mt-4 flex gap-2 rounded-[var(--radius-md)] bg-orange-tint px-3 py-2.5 text-small">
+            <Wallet aria-hidden className="mt-0.5 size-4 shrink-0 text-orange-ink" />
+            <span>{paymentInstructions}</span>
+          </p>
           {slot ? (
             <p className="mt-3 text-small">
-              <span className="font-bold">
+              <span className="font-semibold">
                 {slot.slotName} · {slot.day}
               </span>{" "}
               · delivered {slot.deliveryWindow}
@@ -330,7 +345,7 @@ export function CheckoutForm({
               Fix your basket
             </Link>
           ) : (
-            <button type="submit" disabled={placing || quoting || !quote} className={buttonClass("primary", "md", "mt-4 w-full min-h-13")}>
+            <button type="submit" disabled={placing || quoting || !quote} className={buttonClass("primary", "md", "mt-4 w-full min-h-14 text-[1.0625rem]")}>
               {placing ? "Placing order…" : quote ? `Place order · ${formatPence(quote.totalPence)}` : "Checking prices…"}
             </button>
           )}

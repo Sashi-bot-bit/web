@@ -19,13 +19,13 @@ export function CartBar() {
         <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden">
           <Link
             href="/cart"
-            className="flex min-h-14 items-center justify-between rounded-[var(--radius-md)] bg-ink px-4 text-on-dark shadow-[var(--shadow-float)]"
+            className="flex min-h-14 items-center justify-between rounded-full bg-accent pr-5 pl-2 text-on-accent shadow-[var(--shadow-float)] hover:bg-accent-hover"
           >
             <span className="flex items-center gap-3">
-              <span className="flex size-7 items-center justify-center rounded-full bg-accent text-small font-bold tabular">{count}</span>
-              <span className="font-bold">View basket</span>
+              <span className="flex size-10 items-center justify-center rounded-full bg-bg font-bold text-accent-ink tabular">{count}</span>
+              <span className="font-semibold">View basket</span>
             </span>
-            <span className="font-bold tabular">{formatPence(subtotalPence)}</span>
+            <span className="font-semibold tabular">{formatPence(subtotalPence)}</span>
           </Link>
         </div>
       )}

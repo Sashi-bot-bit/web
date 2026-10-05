@@ -106,8 +106,8 @@ export function MenuView({ restaurant, categories }: { restaurant: Restaurant; c
       <p role="status" aria-live="polite" className="sr-only">
         {announcement}
       </p>
-      <nav aria-label="Menu categories" className="sticky top-14 z-20 mt-6 border-b border-border bg-bg">
-        <div ref={tabsRef} className="no-scrollbar flex gap-1 overflow-x-auto px-4">
+      <nav aria-label="Menu categories" className="sticky top-16 z-20 mt-4 bg-bg/95 py-2 backdrop-blur">
+        <div ref={tabsRef} className="no-scrollbar flex gap-2 overflow-x-auto px-4">
           {categories.map((c) => (
             <a
               key={c.id}
@@ -116,12 +116,11 @@ export function MenuView({ restaurant, categories }: { restaurant: Restaurant; c
               aria-current={active === c.id ? "true" : undefined}
               onClick={() => setActive(c.id)}
               className={cn(
-                "relative inline-flex min-h-12 shrink-0 items-center px-3 text-small font-bold whitespace-nowrap",
-                active === c.id ? "text-ink" : "text-muted hover:text-ink",
+                "inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-small font-semibold whitespace-nowrap transition-colors",
+                active === c.id ? "bg-accent text-on-accent" : "bg-surface text-ink-2 hover:text-ink",
               )}
             >
               {c.name}
-              <span aria-hidden className={cn("absolute inset-x-3 bottom-0 h-0.5 rounded-full", active === c.id ? "bg-accent" : "bg-transparent")} />
             </a>
           ))}
         </div>
@@ -129,17 +128,17 @@ export function MenuView({ restaurant, categories }: { restaurant: Restaurant; c
 
       <div className="px-4">
         {categories.map((c) => (
-          <section key={c.id} id={`cat-${c.id}`} aria-labelledby={`h-${c.id}`} className="scroll-mt-32 pt-8">
-            <h2 id={`h-${c.id}`} className="text-h2 font-bold">
+          <section key={c.id} id={`cat-${c.id}`} aria-labelledby={`h-${c.id}`} className="scroll-mt-32 pt-6">
+            <h2 id={`h-${c.id}`} className="text-h3 font-bold">
               {c.name}
             </h2>
-            <ul className="mt-2 divide-y divide-border">
+            <ul className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
               {c.items.map((item) => {
                 const qty = inCart.get(item.id);
                 return (
-                  <li key={item.id} className="relative flex gap-4 py-4">
+                  <li key={item.id} className="relative flex gap-3 rounded-[var(--radius-lg)] bg-bg p-3 shadow-[var(--shadow-card)]">
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-bold">
+                      <h3 className="font-semibold">
                         <button
                           type="button"
                           onClick={() => show(item)}
@@ -158,23 +157,43 @@ export function MenuView({ restaurant, categories }: { restaurant: Restaurant; c
                       {!item.orderable ? <p className="mt-1.5 text-small font-bold text-danger-ink">Not available to order</p> : null}
                     </div>
                     {item.imageUrl ? (
-                      <div className="relative size-24 shrink-0 overflow-hidden rounded-[var(--radius-md)] bg-surface sm:size-28">
+                      <div className="relative order-first size-20 shrink-0 overflow-hidden rounded-[var(--radius-md)] bg-surface sm:size-24">
                         <Image src={item.imageUrl} alt="" fill sizes="112px" className="object-cover" />
                       </div>
                     ) : null}
-                    <div className="relative z-10 flex shrink-0 items-start">
+                    <div className="relative z-10 flex shrink-0 items-end">
                       {item.orderable ? (
-                        <button
-                          type="button"
-                          onClick={() => add(item, 1)}
-                          aria-label={`Add ${item.name} to basket`}
-                          className={cn(
-                            "flex size-11 items-center justify-center rounded-full border font-bold tabular",
-                            qty ? "border-ink bg-ink text-on-dark" : "border-border-strong bg-bg hover:border-ink",
-                          )}
-                        >
-                          {qty ? <span aria-hidden>{qty}</span> : <Plus aria-hidden className="size-5" />}
-                        </button>
+                        qty ? (
+                          <div role="group" aria-label={`${item.name} quantity`} className="flex items-center rounded-full bg-accent text-on-accent">
+                            <button
+                              type="button"
+                              onClick={() => cart.setQuantity(item.id, qty - 1)}
+                              className="flex size-11 items-center justify-center rounded-full hover:bg-accent-hover"
+                            >
+                              <Minus aria-hidden className="size-4" strokeWidth={2.5} />
+                              <span className="sr-only">Remove one {item.name}</span>
+                            </button>
+                            <span className="w-5 text-center font-semibold tabular">{qty}</span>
+                            <button
+                              type="button"
+                              onClick={() => add(item, 1)}
+                              disabled={qty >= MAX_QTY_PER_LINE}
+                              aria-label={`Add ${item.name} to basket`}
+                              className="flex size-11 items-center justify-center rounded-full hover:bg-accent-hover disabled:opacity-40"
+                            >
+                              <Plus aria-hidden className="size-4" strokeWidth={2.5} />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => add(item, 1)}
+                            aria-label={`Add ${item.name} to basket`}
+                            className="inline-flex min-h-11 items-center gap-1 rounded-full border-2 border-accent px-4 text-small font-semibold text-accent-ink hover:bg-accent-tint"
+                          >
+                            <Plus aria-hidden className="size-4" strokeWidth={2.5} /> Add
+                          </button>
+                        )
                       ) : null}
                     </div>
                   </li>
@@ -309,7 +328,7 @@ function ItemSheet({
                   onAdd(item, qty);
                   onClose();
                 }}
-                className="flex min-h-13 flex-1 items-center justify-between rounded-[var(--radius-md)] bg-accent px-5 font-bold text-on-accent hover:bg-accent-hover"
+                className="flex min-h-13 flex-1 items-center justify-between rounded-full bg-accent px-6 font-semibold text-on-accent hover:bg-accent-hover"
               >
                 <span>Add to basket</span>
                 <span className="tabular">{formatPence(unitPrice(item) * qty)}</span>

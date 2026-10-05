@@ -43,6 +43,17 @@ const PAIRS: [string, string, number][] = [
   ["on-dark", "ink", 4.5],
   ["on-dark-muted", "ink", 4.5],
   ["accent-on-dark", "ink", 4.5],
+  ["ink-2", "warn-tint", 4.5],
+  ["accent-ink", "bg", 4.5],
+  ["accent-ink", "surface", 4.5],
+  ["orange-ink", "orange-tint", 4.5],
+  ["orange-ink", "bg", 4.5],
+  ["success-ink", "green-tint", 4.5],
+  ["ink-2", "green-tint", 4.5],
+  ["ink-2", "pink-tint", 4.5],
+  ["accent-ink", "pink-tint", 4.5],
+  ["muted", "warn-tint", 4.5],
+  ["accent", "bg", 4.5], // highlighted headline word
   ["border-strong", "bg", 3],
   ["border-strong", "surface", 3],
   ["accent", "bg", 3], // focus ring

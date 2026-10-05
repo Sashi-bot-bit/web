@@ -3,7 +3,7 @@ import { expectAccessible } from "./a11y";
 
 test("guest orders for pay on delivery and can track the order", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByText("Ordering closes in", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /orders close in$/ })).toBeVisible();
   await expectAccessible(page);
 
   await page.getByRole("link", { name: /E2E Burgers/ }).click();
@@ -40,7 +40,7 @@ test("guest orders for pay on delivery and can track the order", async ({ page }
 
   await expect(page).toHaveURL(/\/orders\/[^?]+\?t=.+&placed=1/);
   await expect(page.getByText("Your order is confirmed.")).toBeVisible();
-  await expect(page.getByText("Order confirmed")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Order confirmed!" })).toBeVisible();
   await expect(page.getByText("Library steps").first()).toBeVisible();
   await expectAccessible(page);
 

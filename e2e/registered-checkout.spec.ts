@@ -21,7 +21,7 @@ test("customer signs up, orders, and sees the order in their history", async ({ 
   await page.getByLabel(/I accept the/).check();
   await page.getByRole("button", { name: /Place order · £13.00/ }).click(); // £8.50 + £3.00 + £1.50
   await expect(page.getByText("Your order is confirmed.")).toBeVisible();
-  const number = await page.locator("h1.tabular").innerText();
+  const number = await page.locator("[data-order-number]").innerText();
 
   await page.goto("/account/orders");
   await expect(page.getByText(number)).toBeVisible();

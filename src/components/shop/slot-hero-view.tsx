@@ -2,49 +2,62 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
-import { Bike } from "lucide-react";
+import { Clock } from "lucide-react";
 import type { SlotView } from "@/server/slot-view";
 import { Countdown } from "./countdown";
 import { SlotChip } from "./status-chips";
 
+/** "Today's orders close in" card (mockup style) with live HH:MM:SS. */
 export function SlotCardView({ featured, serverNow }: { featured: SlotView | null; serverNow: string }) {
   const router = useRouter();
   const refresh = useCallback(() => router.refresh(), [router]);
 
   if (!featured) {
     return (
-      <div className="w-full max-w-md rounded-[var(--radius-lg)] border border-border bg-bg p-5 shadow-[var(--shadow-float)]">
-        <p className="font-bold">We’re not taking orders this week</p>
-        <p className="mt-1 text-small text-muted">Check back soon for the next delivery slot.</p>
+      <div className="rounded-[var(--radius-lg)] bg-warn-tint p-5">
+        <p className="font-semibold">We’re not taking orders this week</p>
+        <p className="mt-1 text-small text-ink-2">Check back soon for the next delivery slot.</p>
       </div>
     );
   }
   const open = featured.status === "OPEN" || featured.status === "CLOSING_SOON";
+  const heading = open ? `${featured.day === "Today" ? "Today’s" : featured.day} ${featured.slotName.toLowerCase()} orders close in` : `${featured.slotName} ordering opens in`;
   return (
-    <section aria-labelledby="slot-card-heading" className="w-full max-w-md rounded-[var(--radius-lg)] border border-border bg-bg p-5 shadow-[var(--shadow-float)]">
-      <div className="flex items-center justify-between gap-3">
-        <h2 id="slot-card-heading" className="font-bold">
-          {featured.slotName} · {featured.day}
-        </h2>
-        <SlotChip status={featured.status} />
-      </div>
-      <div className="mt-3">
-        {open ? (
-          <Countdown target={featured.orderClosesAt} serverNow={serverNow} label="Ordering closes in" onDone={refresh} />
-        ) : (
-          <Countdown target={featured.orderOpensAt} serverNow={serverNow} label={`Ordering opens at ${featured.orderOpens}, in`} onDone={refresh} />
-        )}
-      </div>
-      <p className="mt-3 flex items-center gap-2 border-t border-border pt-3 text-small">
-        <Bike aria-hidden className="size-4 shrink-0 text-accent" />
-        <span>
-          Order {featured.orderOpens}–{featured.orderCloses} · <span className="font-bold tabular">Delivered {featured.deliveryWindow}</span>
+    <section aria-labelledby="slot-card-heading" className="rounded-[var(--radius-lg)] bg-warn-tint p-5">
+      <div className="flex items-start gap-3">
+        <span aria-hidden className="flex size-10 shrink-0 items-center justify-center rounded-full bg-warn text-ink">
+          <Clock className="size-5" strokeWidth={2.25} />
         </span>
-      </p>
-      {open && featured.spacesLeft <= 10 ? (
-        <p className="mt-2 text-small font-bold text-danger-ink">Only {featured.spacesLeft} order{featured.spacesLeft === 1 ? "" : "s"} left in this slot</p>
-      ) : null}
-      {!open ? <p className="mt-2 text-small text-muted">Build your basket now and check out when ordering opens.</p> : null}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 id="slot-card-heading" className="font-semibold">
+              {heading}
+            </h2>
+            <SlotChip status={featured.status} />
+          </div>
+          <div className="mt-3">
+            <Countdown
+              target={open ? featured.orderClosesAt : featured.orderOpensAt}
+              serverNow={serverNow}
+              label={open ? "Ordering closes in" : `Ordering opens at ${featured.orderOpens}, in`}
+              onDone={refresh}
+            />
+          </div>
+          <p className="mt-3 text-small text-ink-2">
+            {open ? (
+              <>
+                Order by <span className="font-semibold tabular">{featured.orderCloses}</span> · collect <span className="font-semibold tabular">{featured.deliveryWindow}</span>
+              </>
+            ) : (
+              <>
+                {featured.day} · order <span className="font-semibold tabular">{featured.orderOpens}–{featured.orderCloses}</span> · collect{" "}
+                <span className="font-semibold tabular">{featured.deliveryWindow}</span>
+              </>
+            )}
+          </p>
+          {open && featured.spacesLeft <= 10 ? <p className="mt-1 text-small font-semibold text-danger-ink">Only {featured.spacesLeft} orders left in this slot</p> : null}
+        </div>
+      </div>
     </section>
   );
 }

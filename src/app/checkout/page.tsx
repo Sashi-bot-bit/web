@@ -35,7 +35,7 @@ async function CheckoutData() {
 
 export default function CheckoutPage() {
   return (
-    <div className="mx-auto max-w-5xl px-4 pt-8">
+    <div className="mx-auto max-w-5xl px-4 pt-6">
       <h1 className="text-h1 font-bold">Checkout</h1>
       <Suspense fallback={<div className="mt-6 h-96 animate-pulse rounded-[var(--radius-lg)] bg-surface" />}>
         <CheckoutData />

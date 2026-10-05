@@ -9,7 +9,7 @@ export async function SlotCard() {
 }
 
 export function SlotCardSkeleton() {
-  return <div aria-hidden className="h-[164px] w-full max-w-md animate-pulse rounded-[var(--radius-lg)] border border-border bg-bg" />;
+  return <div aria-hidden className="h-[168px] w-full animate-pulse rounded-[var(--radius-lg)] bg-warn-tint" />;
 }
 
 /** Today's and upcoming delivery slots. */
@@ -20,7 +20,7 @@ export async function DeliveryTimes() {
   return (
     <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {all.map((s) => (
-        <li key={s.key} className="rounded-[var(--radius-md)] border border-border bg-bg p-4">
+        <li key={s.key} className="rounded-[var(--radius-lg)] bg-bg p-4 shadow-[var(--shadow-card)]">
           <p className="flex items-center gap-2 font-bold">
             <CalendarClock aria-hidden className="size-4 text-accent" />
             {s.slotName} · {s.day}

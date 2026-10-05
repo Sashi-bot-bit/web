@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Poppins } from "next/font/google";
 import { Suspense } from "react";
 import { AnnouncementBar } from "@/components/shop/announcement-bar";
 import { CartBar } from "@/components/shop/cart-bar";
@@ -7,6 +8,8 @@ import { SiteHeader } from "@/components/shop/site-header";
 import { getSettings } from "@/server/catalog";
 import { env } from "@/server/env";
 import "./globals.css";
+
+const poppins = Poppins({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-poppins", display: "swap" });
 
 export async function generateMetadata(): Promise<Metadata> {
   const { brandName } = await getSettings();
@@ -29,7 +32,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { brandName, supportEmail } = await getSettings();
   return (
-    <html lang="en-GB">
+    <html lang="en-GB" className={poppins.variable}>
       <body className="flex min-h-dvh flex-col bg-bg text-ink">
         <a
           href="#main"

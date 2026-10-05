@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { Check, CircleX, ExternalLink, MapPin, UserX, Wallet } from "lucide-react";
+import { CalendarClock, Check, CircleX, ExternalLink, Hash, Mail, MapPin, UserX, UtensilsCrossed, Wallet } from "lucide-react";
 import type { OrderStatus } from "@/generated/prisma/enums";
 import { canTransition } from "@/shared/order-state";
 import { dbDateToLocalDate, formatLocalDate, formatLondonDateTime, formatLondonTime } from "@/shared/time";
@@ -48,6 +48,8 @@ async function OrderContent({ params, searchParams }: Props) {
   const canCancel = canTransition(order.status, "CANCELLED", "CUSTOMER", { orderClosesAt: occ.orderClosesAt });
   const terminalBad = order.status === "CANCELLED" || order.status === "NOT_COLLECTED";
 
+  const TitleTag = placed && order.status === "CONFIRMED" ? "h2" : "h1";
+
   const byRestaurant = new Map<string, typeof order.items>();
   for (const i of order.items) byRestaurant.set(i.restaurantName, [...(byRestaurant.get(i.restaurantName) ?? []), i]);
 
@@ -55,23 +57,64 @@ async function OrderContent({ params, searchParams }: Props) {
     <>
       <StatusPoller orderId={order.id} token={t ?? null} status={order.status} updatedAt={order.updatedAt.toISOString()} />
       {placed && order.status === "CONFIRMED" ? (
-        <div role="status" className="mb-6 flex gap-3 rounded-[var(--radius-lg)] bg-ink p-5 text-on-dark">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-success text-ink">
-            <Check aria-hidden className="size-5" strokeWidth={3} />
+        <section role="status" aria-labelledby="confirmed-heading" className="mx-auto mb-10 max-w-md text-center">
+          <span className="mx-auto flex size-20 items-center justify-center rounded-full bg-green-tint">
+            <span className="flex size-14 items-center justify-center rounded-full bg-success text-ink">
+              <Check aria-hidden className="size-8" strokeWidth={3} />
+            </span>
           </span>
-          <div>
-            <p className="text-h3 font-bold">Thanks, {order.contactName.split(" ")[0]}. Your order is confirmed.</p>
-            <p className="mt-1 text-small text-on-dark-muted">
-              We’ve emailed your confirmation and this tracking link to {order.contactEmail}. Bookmark this page to check progress.
-            </p>
+          <h1 id="confirmed-heading" className="mt-4 text-h1 font-bold">
+            Order confirmed!
+          </h1>
+          <p className="mt-1 text-ink-2">Thank you, {order.contactName.split(" ")[0]}! Your order is confirmed.</p>
+
+          <ul className="mt-6 divide-y divide-border rounded-[var(--radius-lg)] bg-bg px-4 text-left shadow-[var(--shadow-card)]">
+            <SummaryRow icon={Hash} tint="bg-accent-tint text-accent-ink" label="Order number">
+              <span data-order-number className="tabular">{order.number}</span>
+            </SummaryRow>
+            <SummaryRow icon={CalendarClock} tint="bg-warn-tint text-ink" label={`${occ.slot.name} · ${day}`}>
+              <span className="tabular">Collect {window}</span>
+            </SummaryRow>
+            <SummaryRow icon={MapPin} tint="bg-green-tint text-success-ink" label="Collection point">
+              {dp.name}
+            </SummaryRow>
+            <SummaryRow icon={Wallet} tint="bg-orange-tint text-orange-ink" label="Pay on collection">
+              <span className="tabular">{formatPence(order.totalPence)}</span>
+            </SummaryRow>
+          </ul>
+
+          <p className="mt-4 flex gap-2 rounded-[var(--radius-md)] bg-warn-tint px-4 py-3 text-left text-small">
+            <Mail aria-hidden className="mt-0.5 size-4 shrink-0" />
+            <span>
+              We’ve emailed your confirmation and tracking link to <span className="font-semibold break-all">{order.contactEmail}</span>.
+            </span>
+          </p>
+
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <a href="#tracking" className="inline-flex min-h-12 items-center justify-center rounded-full bg-accent px-4 font-semibold text-on-accent hover:bg-accent-hover">
+              Track order
+            </a>
+            <Link href="/" className="inline-flex min-h-12 items-center justify-center rounded-full border-2 border-accent px-4 font-semibold text-accent-ink hover:bg-accent-tint">
+              Back to home
+            </Link>
           </div>
-        </div>
+
+          <div className="mt-5 flex items-center gap-3 rounded-[var(--radius-lg)] bg-pink-tint p-4 text-left">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-bg text-accent-ink">
+              <UtensilsCrossed aria-hidden className="size-5" />
+            </span>
+            <div>
+              <p className="font-semibold">Enjoy your meal!</p>
+              <p className="text-small text-ink-2">See you at {dp.name}.</p>
+            </div>
+          </div>
+        </section>
       ) : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div id="tracking" className="flex scroll-mt-20 flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-small text-muted">Order</p>
-          <h1 className="text-h1 font-bold tabular tracking-[0.02em]">{order.number}</h1>
+          <TitleTag className="text-h1 font-bold tabular tracking-[0.02em]">{order.number}</TitleTag>
         </div>
         <OrderChip status={order.status} />
       </div>
@@ -131,7 +174,7 @@ async function OrderContent({ params, searchParams }: Props) {
             </section>
           )}
 
-          <section aria-labelledby="collect-heading" className="rounded-[var(--radius-lg)] bg-surface p-5">
+          <section aria-labelledby="collect-heading" className="rounded-[var(--radius-lg)] bg-green-tint p-5">
             <h2 id="collect-heading" className="text-label font-bold uppercase tracking-[0.06em] text-muted">
               Collect from
             </h2>
@@ -147,7 +190,7 @@ async function OrderContent({ params, searchParams }: Props) {
                 <span className="sr-only">(opens in a new tab)</span>
               </a>
             ) : null}
-            <p className="mt-4 border-t border-border pt-4 font-bold tabular">
+            <p className="mt-4 border-t border-success/30 pt-4 font-bold tabular">
               {occ.slot.name} · {day} · {window}
             </p>
           </section>
@@ -180,10 +223,10 @@ async function OrderContent({ params, searchParams }: Props) {
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-20">
-          <div className="rounded-[var(--radius-lg)] border border-border p-5">
+          <div className="rounded-[var(--radius-lg)] bg-bg p-5 shadow-[var(--shadow-card)]">
             <OrderSummary subtotalPence={order.subtotalPence} fees={order.fees} totalPence={order.totalPence} totalLabel={order.paymentStatus === "COLLECTED" ? "Paid" : "Pay on delivery"} />
             {order.status !== "CANCELLED" ? (
-              <p className="mt-4 flex gap-2 rounded-[var(--radius-sm)] bg-surface px-3 py-2 text-small">
+              <p className="mt-4 flex gap-2 rounded-[var(--radius-md)] bg-orange-tint px-3 py-2 text-small">
                 <Wallet aria-hidden className="mt-0.5 size-4 shrink-0" />
                 <span>
                   {order.paymentStatus === "COLLECTED" ? "Payment received. Thank you." : `Have ${formatPence(order.totalPence)} ready. ${settings.paymentInstructions}`}
@@ -204,9 +247,33 @@ async function OrderContent({ params, searchParams }: Props) {
   );
 }
 
+function SummaryRow({
+  icon: Icon,
+  tint,
+  label,
+  children,
+}: {
+  icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+  tint: string;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <li className="flex items-center gap-3 py-3">
+      <span className={cn("flex size-10 shrink-0 items-center justify-center rounded-full", tint)}>
+        <Icon aria-hidden className="size-5" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-small text-muted">{label}</span>
+        <span className="block font-semibold">{children}</span>
+      </span>
+    </li>
+  );
+}
+
 export default function OrderPage(props: Props) {
   return (
-    <div className="mx-auto max-w-5xl px-4 pt-8">
+    <div className="mx-auto max-w-5xl px-4 pt-6">
       <Suspense fallback={<div className="h-96 animate-pulse rounded-[var(--radius-lg)] bg-surface" />}>
         <OrderContent {...props} />
       </Suspense>

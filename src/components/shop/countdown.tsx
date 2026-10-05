@@ -16,21 +16,10 @@ function spoken(ms: number) {
 }
 
 /**
- * Live countdown to `target`. Uses the server time offset, so a wrong device
- * clock can't mislead. Screen readers hear an update once a minute, not every
- * second. When it reaches zero, `onDone` lets the page refresh.
+ * Live HH : MM : SS countdown to `target`, using the server time offset so a
+ * wrong device clock can't mislead. Screen readers hear it once a minute.
  */
-export function Countdown({
-  target,
-  serverNow,
-  label,
-  onDone,
-}: {
-  target: string;
-  serverNow: string;
-  label: string;
-  onDone?: () => void;
-}) {
+export function Countdown({ target, serverNow, label, onDone }: { target: string; serverNow: string; label: string; onDone?: () => void }) {
   const [offset] = useState(() => new Date(serverNow).getTime() - Date.now());
   const [now, setNow] = useState(() => new Date(serverNow).getTime());
   const remaining = new Date(target).getTime() - now;
@@ -60,32 +49,25 @@ export function Countdown({
 
   const { h, m, s } = parts(remaining);
   const minuteKey = Math.ceil(Math.max(0, remaining) / 60_000);
+  const box = (value: string, unit: string) => (
+    <div className="flex flex-col items-center">
+      <span className="min-w-[3.25rem] rounded-[12px] bg-bg px-2 py-1.5 text-center text-[2rem] leading-none font-bold tabular shadow-[var(--shadow-card)]">{value}</span>
+      <span className="mt-1.5 text-[0.75rem] font-medium text-muted">{unit}</span>
+    </div>
+  );
 
   return (
     <div>
       <p className="sr-only" aria-live="polite" aria-atomic="true" key={minuteKey}>
         {label} {spoken(remaining)}
       </p>
-      <p aria-hidden className="text-small text-muted">
-        {label}
-      </p>
-      <p aria-hidden className="mt-0.5 text-[2rem] leading-none font-bold tracking-[-0.02em] tabular">
-        {h > 0 ? (
-          <>
-            {h}
-            <span className="text-[0.55em] text-muted">h </span>
-            {pad(m)}
-            <span className="text-[0.55em] text-muted">m </span>
-          </>
-        ) : (
-          <>
-            {pad(m)}
-            <span className="text-[0.55em] text-muted">m </span>
-          </>
-        )}
-        {pad(s)}
-        <span className="text-[0.55em] text-muted">s</span>
-      </p>
+      <div aria-hidden className="flex items-start gap-2">
+        {box(pad(h), "Hours")}
+        <span className="pt-1.5 text-[1.75rem] leading-none font-bold">:</span>
+        {box(pad(m), "Minutes")}
+        <span className="pt-1.5 text-[1.75rem] leading-none font-bold">:</span>
+        {box(pad(s), "Seconds")}
+      </div>
     </div>
   );
 }
