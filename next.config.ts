@@ -36,7 +36,11 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   poweredByHeader: false,
   images: {
-    remotePatterns: [{ protocol: "https", hostname: "*.public.blob.vercel-storage.com" }],
+    remotePatterns: [
+      { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
+      // Placeholder cuisine photography until restaurants supply their own (src/lib/food-images.ts).
+      { protocol: "https", hostname: "images.unsplash.com", pathname: "/photo-*" },
+    ],
     formats: ["image/avif", "image/webp"],
   },
   async headers() {

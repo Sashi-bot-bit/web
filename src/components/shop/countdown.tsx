@@ -25,13 +25,11 @@ export function Countdown({
   serverNow,
   label,
   onDone,
-  size = "lg",
 }: {
   target: string;
   serverNow: string;
   label: string;
   onDone?: () => void;
-  size?: "lg" | "sm";
 }) {
   const [offset] = useState(() => new Date(serverNow).getTime() - Date.now());
   const [now, setNow] = useState(() => new Date(serverNow).getTime());
@@ -68,25 +66,25 @@ export function Countdown({
       <p className="sr-only" aria-live="polite" aria-atomic="true" key={minuteKey}>
         {label} {spoken(remaining)}
       </p>
-      <p aria-hidden className="text-label font-bold uppercase tracking-[0.06em] opacity-80">
+      <p aria-hidden className="text-small text-muted">
         {label}
       </p>
-      <p aria-hidden className={size === "lg" ? "mt-1 font-bold tabular text-[2.75rem] leading-none tracking-[-0.03em] sm:text-[3.5rem]" : "font-bold tabular text-h2"}>
+      <p aria-hidden className="mt-0.5 text-[2rem] leading-none font-bold tracking-[-0.02em] tabular">
         {h > 0 ? (
           <>
             {h}
-            <span className="text-[0.45em] font-bold opacity-70">h </span>
+            <span className="text-[0.55em] text-muted">h </span>
             {pad(m)}
-            <span className="text-[0.45em] font-bold opacity-70">m </span>
+            <span className="text-[0.55em] text-muted">m </span>
           </>
         ) : (
           <>
             {pad(m)}
-            <span className="text-[0.45em] font-bold opacity-70">m </span>
+            <span className="text-[0.55em] text-muted">m </span>
           </>
         )}
         {pad(s)}
-        <span className="text-[0.45em] font-bold opacity-70">s</span>
+        <span className="text-[0.55em] text-muted">s</span>
       </p>
     </div>
   );

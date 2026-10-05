@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
+import { coverFor } from "@/lib/food-images";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -59,18 +61,24 @@ async function RestaurantContent({ params }: { params: Promise<Params> }) {
   const menu = await getRestaurantMenu(slug);
   if (!menu) notFound();
   const itemCount = menu.categories.reduce((n, c) => n + c.items.length, 0);
+  const cover = coverFor({ coverUrl: menu.coverUrl, name: menu.name, description: menu.description, categories: menu.categories.map((c) => c.name) });
   return (
     <>
-      <div className="mx-auto max-w-5xl px-4 pt-4">
-        <Link href="/#restaurants" className="-ml-1 inline-flex min-h-11 items-center gap-1 text-small font-bold text-ink-2 hover:text-ink">
-          <ChevronLeft aria-hidden className="size-4" /> All restaurants
-        </Link>
-        <h1 className="mt-1 text-[2rem] leading-tight font-bold tracking-[-0.02em] sm:text-[2.5rem]">{menu.name}</h1>
-        <p className="mt-1 max-w-prose text-muted">{menu.description}</p>
-        <div className="mt-4">
-          <Suspense fallback={<div className="h-10 animate-pulse rounded-[var(--radius-md)] bg-surface" />}>
-            <SlotNotice restaurantId={menu.id} name={menu.name} />
-          </Suspense>
+      <div className="relative h-44 overflow-hidden bg-surface sm:h-60">
+        <Image src={cover.src} alt="" fill priority sizes="100vw" className="object-cover" />
+      </div>
+      <div className="mx-auto max-w-5xl px-4">
+        <div className="relative -mt-10 rounded-[var(--radius-lg)] bg-bg p-5 shadow-[var(--shadow-float)] sm:-mt-14 sm:p-6">
+          <Link href="/#restaurants" className="-ml-1 inline-flex min-h-11 items-center gap-1 text-small font-bold text-ink-2 hover:text-ink">
+            <ChevronLeft aria-hidden className="size-4" /> All restaurants
+          </Link>
+          <h1 className="text-[2rem] leading-tight font-bold tracking-[-0.02em] sm:text-[2.5rem]">{menu.name}</h1>
+          <p className="mt-1 max-w-prose text-muted">{menu.description}</p>
+          <div className="mt-4">
+            <Suspense fallback={<div className="h-10 animate-pulse rounded-[var(--radius-md)] bg-surface" />}>
+              <SlotNotice restaurantId={menu.id} name={menu.name} />
+            </Suspense>
+          </div>
         </div>
       </div>
       {itemCount === 0 ? (
@@ -84,7 +92,7 @@ async function RestaurantContent({ params }: { params: Promise<Params> }) {
 
 export default function RestaurantPage({ params }: { params: Promise<Params> }) {
   return (
-    <Suspense fallback={<div className="mx-auto mt-6 h-64 max-w-5xl animate-pulse rounded-[var(--radius-md)] bg-surface px-4" />}>
+    <Suspense fallback={<div className="h-60 animate-pulse bg-surface" />}>
       <RestaurantContent params={params} />
     </Suspense>
   );

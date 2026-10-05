@@ -25,7 +25,7 @@ async function AccountLink() {
 export function SiteHeader({ brand }: { brand: string }) {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-bg/95 backdrop-blur supports-[backdrop-filter]:bg-bg/85">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-4">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4">
         <Link href="/" className="flex items-center gap-2 text-h3 font-bold tracking-[-0.02em]">
           <span aria-hidden className="inline-block size-2.5 rounded-full bg-accent" />
           {brand}
