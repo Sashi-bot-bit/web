@@ -169,7 +169,7 @@ async function OrderContent({ params, searchParams }: Props) {
                         <p className="font-bold tabular">{formatPence(i.lineTotalPence)}</p>
                       </div>
                       <div className="mt-1">
-                        <AllergenInfo allergens={i.allergens} mayContain={i.mayContain} compact />
+                        <AllergenInfo allergens={i.allergens} mayContain={i.mayContain} noAllergens={i.noAllergens} compact />
                       </div>
                     </li>
                   ))}

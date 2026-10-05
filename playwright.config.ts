@@ -14,7 +14,7 @@ export default defineConfig({
   projects: [{ name: "mobile", use: { ...devices["Pixel 7"] } }],
   webServer: {
     // Seed first and start from an empty build cache so no stale cached data survives between runs.
-    command: `pnpm exec tsx e2e/fixtures.ts && rm -rf .next-e2e && pnpm exec next dev --port ${PORT}`,
+    command: `DATABASE_URL=${E2E_DB} DATABASE_URL_UNPOOLED=${E2E_DB} pnpm exec prisma migrate deploy >/dev/null && pnpm exec tsx e2e/fixtures.ts && rm -rf .next-e2e && pnpm exec next dev --port ${PORT}`,
     url: URL,
     reuseExistingServer: false,
     timeout: 120_000,

@@ -220,9 +220,8 @@ model MenuItem {
   sortOrder            Int
   allergens            Allergen[]
   mayContain           Allergen[]
-  /// Must be set (by an admin) before the item can be made available.
-  allergensConfirmedAt DateTime?
-  allergensConfirmedBy String?
+  /// Explicitly "contains none of the 14". Empty allergens without this flag means "not provided".
+  noAllergens          Boolean    @default(false)
   kcal                 Int?
   spiceLevel           Int        @default(0)
   portionNote          String?
@@ -410,6 +409,7 @@ model OrderItem {
   lineTotalPence         Int
   allergens              Allergen[]
   mayContain             Allergen[]
+  noAllergens            Boolean    @default(false)
   dietaryLabels          String[]
   kcal                   Int?
 

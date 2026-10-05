@@ -1,6 +1,6 @@
 import { Flame } from "lucide-react";
 import type { Allergen } from "@/generated/prisma/enums";
-import { allergenLabel } from "@/shared/allergens";
+import { ALLERGENS_NOT_PROVIDED, allergenLabel } from "@/shared/allergens";
 
 export function DietaryBadges({ tags }: { tags: { slug: string; label: string }[] }) {
   if (!tags.length) return null;
@@ -32,23 +32,22 @@ export function Spice({ level }: { level: number }) {
 export function AllergenInfo({
   allergens,
   mayContain,
-  confirmed = true,
+  noAllergens,
   compact = false,
 }: {
   allergens: (Allergen | string)[];
   mayContain: (Allergen | string)[];
-  confirmed?: boolean;
+  noAllergens: boolean;
   compact?: boolean;
 }) {
-  if (!confirmed) {
-    return <p className="text-small font-bold text-danger-ink">Allergen information is being checked with the restaurant. This item can’t be ordered yet.</p>;
-  }
   const contains = allergens.map((a) => allergenLabel(a as Allergen));
   const traces = mayContain.map((a) => allergenLabel(a as Allergen));
+  const notProvided = contains.length === 0 && !noAllergens;
   if (compact) {
     return (
       <p className="text-small text-muted">
-        <span className="font-bold text-ink">Contains:</span> {contains.length ? contains.join(", ") : "none of the 14 allergens"}
+        <span className="font-bold text-ink">Contains:</span>{" "}
+        {contains.length ? contains.join(", ") : noAllergens ? "none of the 14 allergens" : "not provided by the restaurant"}
         {traces.length ? (
           <>
             {" "}
@@ -70,6 +69,8 @@ export function AllergenInfo({
               </li>
             ))}
           </ul>
+        ) : notProvided ? (
+          <p className="mt-1 text-small font-bold">{ALLERGENS_NOT_PROVIDED}</p>
         ) : (
           <p className="mt-1 text-small">None of the 14 major allergens</p>
         )}

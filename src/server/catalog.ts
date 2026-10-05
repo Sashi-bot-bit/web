@@ -9,11 +9,10 @@ import { db } from "./db";
  */
 const MENU_LIFE = { stale: 30, revalidate: 60, expire: 3600 };
 
-/** An item can be ordered only when the whole chain is live and allergens are confirmed. */
+/** An item can be ordered only when it and its category and restaurant are live. */
 export const ORDERABLE_ITEM = {
   archivedAt: null,
   isAvailable: true,
-  allergensConfirmedAt: { not: null },
   category: { isActive: true, archivedAt: null },
   restaurant: { isActive: true, archivedAt: null },
 } as const;
@@ -49,7 +48,7 @@ export type MenuItemView = {
   orderable: boolean;
   allergens: string[];
   mayContain: string[];
-  allergensConfirmed: boolean;
+  noAllergens: boolean;
   dietary: { slug: string; label: string }[];
   kcal: number | null;
   spiceLevel: number;
@@ -100,10 +99,10 @@ export async function getRestaurantMenu(slug: string) {
             pricePence: i.pricePence,
             discountedPricePence: i.discountedPricePence,
             imageUrl: i.imageUrl,
-            orderable: i.isAvailable && Boolean(i.allergensConfirmedAt),
+            orderable: i.isAvailable,
             allergens: i.allergens,
             mayContain: i.mayContain,
-            allergensConfirmed: Boolean(i.allergensConfirmedAt),
+            noAllergens: i.noAllergens,
             dietary: i.dietaryTags
               .filter((t) => t.dietaryTag.isActive)
               .sort((a, b) => a.dietaryTag.sortOrder - b.dietaryTag.sortOrder)

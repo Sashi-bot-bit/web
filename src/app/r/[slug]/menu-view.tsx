@@ -281,7 +281,7 @@ function ItemSheet({
                 <h3 id="allergen-title" className="mb-3 font-bold">
                   Allergens
                 </h3>
-                <AllergenInfo allergens={item.allergens} mayContain={item.mayContain} confirmed={item.allergensConfirmed} />
+                <AllergenInfo allergens={item.allergens} mayContain={item.mayContain} noAllergens={item.noAllergens} />
                 <p className="mt-3 text-[0.8125rem] leading-5 text-muted">
                   Information supplied by the restaurant. If you have a severe allergy, contact us before ordering.
                 </p>

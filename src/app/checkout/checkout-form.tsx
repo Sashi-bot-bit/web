@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { AlertTriangle, Check, Clock, MapPin } from "lucide-react";
 import { restaurantOpenIn } from "@/shared/availability";
-import { allergenLabel } from "@/shared/allergens";
+import { allergenLabel, allergenSummary } from "@/shared/allergens";
 import { formatPence } from "@/shared/money";
 import type { Allergen } from "@/generated/prisma/enums";
 import type { SlotView } from "@/server/slot-view";
@@ -275,7 +275,7 @@ export function CheckoutForm({
                     <p className="font-bold tabular">{formatPence(l.lineTotalPence)}</p>
                   </div>
                   <p className="mt-0.5 text-small text-muted">
-                    Contains: {l.allergens.length ? l.allergens.map((a) => allergenLabel(a as Allergen)).join(", ") : "none of the 14 allergens"}
+                    Contains: {allergenSummary(l.allergens, l.noAllergens)}
                     {l.mayContain.length ? ` · May contain: ${l.mayContain.map((a) => allergenLabel(a as Allergen)).join(", ")}` : ""}
                   </p>
                   {l.problem ? <p className="mt-1 text-small font-bold text-danger-ink">No longer available. Remove it from your basket.</p> : null}

@@ -175,6 +175,7 @@ export async function placeOrder(input: PlaceOrderInput, customer: { id: string 
                   lineTotalPence: l.lineTotalPence,
                   allergens: normaliseAllergens(l.allergens),
                   mayContain: normaliseAllergens(l.mayContain),
+                  noAllergens: l.allergens.length === 0 && l.noAllergens,
                   dietaryLabels: l.dietaryLabels,
                   kcal: l.kcal,
                 })),

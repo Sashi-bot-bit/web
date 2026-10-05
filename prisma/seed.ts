@@ -66,6 +66,8 @@ type SeedItem = {
   /** Pre-filled from the restaurant's published allergen information, if any. Admin must still confirm. */
   allergens: Allergen[];
   mayContain?: Allergen[];
+  /** Explicitly contains none of the 14 (otherwise empty allergens show as "not provided"). */
+  noAllergens?: boolean;
   tags?: string[];
   kcal?: number;
   spice?: number;
@@ -83,11 +85,10 @@ type SeedRestaurant = {
  *  - Favorite Chicken & Ribs, 38 The Common, AL10 0LU: items from favorite.co.uk/our-menu, allergens from
  *    favorite.co.uk "Online menu – allergens February 2026", prices from public listings for the Hatfield store.
  *  - Spice Field, 3 High View, AL10 8HZ: items and prices from spicefieldherts.co.uk/hatfield/menus.
- *    No allergen information is published, so allergens are blank until the restaurant provides them.
+ *    No allergen information is published, so allergens show as "not provided" until added.
  *  - Pizza GoGo Hatfield, 31 Market Place, AL10 0LJ: prices from public listings for the Hatfield store.
- *    Pizza GoGo withdrew its allergen document for review in July 2026, so allergens are blank.
- * Every item starts unconfirmed and unavailable: the operator must check prices and allergens with each
- * restaurant, tick the confirmation, then switch the item on. Restaurant photos are not included (copyright);
+ *    Pizza GoGo withdrew its allergen document for review in July 2026, so allergens show as "not provided".
+ * Items start available. Prices should be checked with each restaurant. Restaurant photos are not included (copyright);
  * upload images the restaurant has supplied or approved.
  */
 const FAV_MEAL_NOTE = "Includes regular fries and a can of drink.";
@@ -155,8 +156,8 @@ const RESTAURANTS: SeedRestaurant[] = [
           { name: "Naan", description: "Fresh naan bread from the tandoor.", price: 299, allergens: [], tags: ["vegetarian"] },
           { name: "Garlic Naan", description: "Naan bread with garlic.", price: 399, allergens: [], tags: ["vegetarian"] },
           { name: "Peshwari Naan", description: "Naan filled with coconut and sultanas.", price: 399, allergens: [], tags: ["vegetarian"] },
-          { name: "Coke Can", description: "330ml can.", price: 150, allergens: [], tags: ["vegan", "gluten-free"], portion: "330ml" },
-          { name: "Water Bottle", description: "Still water.", price: 100, allergens: [], tags: ["vegan", "gluten-free"], portion: "500ml" },
+          { name: "Coke Can", description: "330ml can.", price: 150, allergens: [], noAllergens: true, tags: ["vegan", "gluten-free"], portion: "330ml" },
+          { name: "Water Bottle", description: "Still water.", price: 100, allergens: [], noAllergens: true, tags: ["vegan", "gluten-free"], portion: "500ml" },
         ],
       },
     ],
@@ -243,10 +244,8 @@ async function seedCatalogue(tagIds: Map<string, string>) {
             sortOrder: ii,
             allergens: item.allergens,
             mayContain: item.mayContain ?? [],
-            // Unconfirmed until the operator checks with the restaurant (see note above RESTAURANTS).
-            allergensConfirmedAt: null,
-            allergensConfirmedBy: null,
-            isAvailable: false,
+            noAllergens: item.noAllergens ?? false,
+            isAvailable: true,
             kcal: item.kcal ?? null,
             spiceLevel: item.spice ?? 0,
             portionNote: item.portion ?? null,
@@ -313,7 +312,7 @@ async function seedCatalogue(tagIds: Map<string, string>) {
     ],
   });
 
-  console.info("Catalogue seeded: 3 Hatfield restaurants (items unconfirmed and off until checked), 2 slots, 2 drop points, 2 fees.");
+  console.info("Catalogue seeded: 3 Hatfield restaurants, 2 slots, 2 drop points, 2 fees.");
 }
 
 async function main() {

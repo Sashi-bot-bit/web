@@ -19,6 +19,7 @@ export type QuotedLine = {
   lineTotalPence: number;
   allergens: Allergen[];
   mayContain: Allergen[];
+  noAllergens: boolean;
   dietaryLabels: string[];
   kcal: number | null;
   problem: QuoteProblem | null;
@@ -58,7 +59,6 @@ export async function quoteCart(input: CartLineInput[]): Promise<CartQuote> {
     const orderable =
       !i.archivedAt &&
       i.isAvailable &&
-      i.allergensConfirmedAt !== null &&
       i.restaurant.isActive &&
       !i.restaurant.archivedAt &&
       i.category.isActive &&
@@ -78,6 +78,7 @@ export async function quoteCart(input: CartLineInput[]): Promise<CartQuote> {
       lineTotalPence: unit * quantity,
       allergens: i.allergens,
       mayContain: i.mayContain,
+      noAllergens: i.noAllergens,
       dietaryLabels: i.dietaryTags.filter((t) => t.dietaryTag.isActive).map((t) => t.dietaryTag.label),
       kcal: i.kcal,
       problem,

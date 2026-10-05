@@ -66,8 +66,7 @@ export const menuItemInput = z
     isAvailable: checkbox,
     allergens: allergenList,
     mayContain: allergenList,
-    containsNone: checkbox,
-    allergensConfirmed: checkbox,
+    noAllergens: checkbox,
     dietaryTagIds: z.array(id).max(20),
     kcal: optionalInt("Calories", 0, 10000),
     spiceLevel: requiredInt("Spice level", 0, 3),
@@ -82,25 +81,11 @@ export const menuItemInput = z
         message: "Discounted price must be above £0 and below the full price",
       });
     }
-    if (v.containsNone && v.allergens.length > 0) {
+    if (v.noAllergens && v.allergens.length > 0) {
       ctx.addIssue({
         code: "custom",
         path: ["allergens"],
         message: "Untick “Contains none of the 14 allergens” or clear the allergens",
-      });
-    }
-    if (v.allergensConfirmed && !v.containsNone && v.allergens.length === 0) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["allergens"],
-        message: "Select the allergens this item contains, or tick “Contains none of the 14 allergens”",
-      });
-    }
-    if (v.isAvailable && !v.allergensConfirmed) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["allergensConfirmed"],
-        message: "Confirm the allergen information before making this item available",
       });
     }
   });

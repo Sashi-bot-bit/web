@@ -39,7 +39,7 @@ export default async function FavouritesPage() {
     <ul className="divide-y divide-border rounded-[var(--radius-md)] border border-border">
       {favs.map(({ menuItem: i }) => {
         const orderable =
-          !i.archivedAt && i.isAvailable && i.allergensConfirmedAt !== null && i.restaurant.isActive && !i.restaurant.archivedAt && i.category.isActive && !i.category.archivedAt;
+          !i.archivedAt && i.isAvailable && i.restaurant.isActive && !i.restaurant.archivedAt && i.category.isActive && !i.category.archivedAt;
         return (
           <li key={i.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
             <div className="min-w-0 flex-1">

@@ -15,10 +15,10 @@ export async function resetAndSeed() {
     const r = await db.restaurant.create({ data: { slug: "e2e-burgers", name: "E2E Burgers", description: "Test restaurant.", sortOrder: 0 } });
     const c = await db.category.create({ data: { restaurantId: r.id, name: "Burgers", sortOrder: 0 } });
     await db.menuItem.create({
-      data: { restaurantId: r.id, categoryId: c.id, name: "Test Burger", description: "A test burger.", pricePence: 850, sortOrder: 0, allergens: ["GLUTEN", "MILK"], allergensConfirmedAt: new Date(), isAvailable: true },
+      data: { restaurantId: r.id, categoryId: c.id, name: "Test Burger", description: "A test burger.", pricePence: 850, sortOrder: 0, allergens: ["GLUTEN", "MILK"], isAvailable: true },
     });
     await db.menuItem.create({
-      data: { restaurantId: r.id, categoryId: c.id, name: "Test Fries", description: "", pricePence: 300, sortOrder: 1, allergens: [], allergensConfirmedAt: new Date(), isAvailable: true },
+      data: { restaurantId: r.id, categoryId: c.id, name: "Test Fries", description: "", pricePence: 300, sortOrder: 1, allergens: [], noAllergens: true, isAvailable: true },
     });
     await db.fee.create({ data: { label: "Delivery fee", type: "FLAT", amountPence: 150, sortOrder: 0 } });
     await db.dropPoint.create({ data: { name: "Library steps", description: "Front steps of the library.", sortOrder: 0 } });

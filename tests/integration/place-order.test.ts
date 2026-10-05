@@ -78,7 +78,6 @@ beforeAll(async () => {
         pricePence: 500,
         sortOrder: 0,
         allergens: ["GLUTEN"],
-        allergensConfirmedAt: ok ? new Date() : null,
         isAvailable: ok,
       },
     });

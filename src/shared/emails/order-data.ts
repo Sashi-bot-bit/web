@@ -1,5 +1,5 @@
 import type { Allergen } from "@/generated/prisma/enums";
-import { allergenLabel } from "../allergens";
+import { allergenLabel, allergenSummary } from "../allergens";
 import { formatLondonTime, formatLocalDate, dbDateToLocalDate } from "../time";
 import type { OrderEmailData } from "./order";
 
@@ -11,7 +11,7 @@ export type OrderForEmail = {
   dropPointSnapshot: unknown;
   subtotalPence: number;
   totalPence: number;
-  items: { restaurantName: string; name: string; quantity: number; lineTotalPence: number; allergens: Allergen[]; mayContain: Allergen[] }[];
+  items: { restaurantName: string; name: string; quantity: number; lineTotalPence: number; allergens: Allergen[]; mayContain: Allergen[]; noAllergens: boolean }[];
   fees: { label: string; chargedPence: number }[];
   slotOccurrence: { localDate: Date; deliveryStartsAt: Date; deliveryEndsAt: Date; slot: { name: string } };
 };
@@ -38,7 +38,7 @@ export function buildOrderEmailData(
       name: i.name,
       quantity: i.quantity,
       lineTotalPence: i.lineTotalPence,
-      allergens: i.allergens.map(allergenLabel),
+      contains: allergenSummary(i.allergens, i.noAllergens),
       mayContain: i.mayContain.map(allergenLabel),
     });
     byRestaurant.set(i.restaurantName, group);

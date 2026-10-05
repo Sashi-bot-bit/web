@@ -31,3 +31,14 @@ export function normaliseAllergens(codes: readonly Allergen[]): Allergen[] {
   const set = new Set(codes);
   return ALLERGEN_CODES.filter((c) => set.has(c));
 }
+
+export const ALLERGENS_NOT_PROVIDED = "Allergen information not provided by the restaurant. Ask us before ordering if you have an allergy.";
+
+/**
+ * One-line allergen statement. Empty allergens only mean "none" when the item is
+ * explicitly marked as containing none of the 14; otherwise the info is missing.
+ */
+export function allergenSummary(allergens: readonly Allergen[], noAllergens: boolean): string {
+  if (allergens.length) return normaliseAllergens(allergens).map(allergenLabel).join(", ");
+  return noAllergens ? "None of the 14 major allergens" : "Not provided by the restaurant";
+}

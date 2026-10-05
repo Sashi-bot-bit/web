@@ -10,7 +10,7 @@ export type OrderEmailData = {
   /** e.g. "Tue 6 Oct, 12:45–13:15" */
   deliveryWindow: string;
   dropPoint: { name: string; description: string; directions: string | null; mapUrl: string | null };
-  restaurants: { name: string; items: { name: string; quantity: number; lineTotalPence: number; allergens: string[]; mayContain: string[] }[] }[];
+  restaurants: { name: string; items: { name: string; quantity: number; lineTotalPence: number; contains: string; mayContain: string[] }[] }[];
   fees: { label: string; chargedPence: number }[];
   subtotalPence: number;
   totalPence: number;
@@ -50,7 +50,7 @@ function Items({ order }: { order: OrderEmailData }) {
                 <Column style={{ ...emailStyles.row, textAlign: "right" }}>{formatPence(i.lineTotalPence)}</Column>
               </Row>
               <Text style={emailStyles.small}>
-                Contains: {i.allergens.length ? i.allergens.join(", ") : "none of the 14 allergens"}
+                Contains: {i.contains}
                 {i.mayContain.length ? ` · May contain: ${i.mayContain.join(", ")}` : ""}
               </Text>
             </Section>
